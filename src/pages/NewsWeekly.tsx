@@ -198,7 +198,8 @@ const NewsWeekly = () => {
                           alt={video.title}
                           className="w-full h-48 object-cover rounded-t-lg"
                           onError={(e) => {
-                            e.target.src = '/placeholder.svg';
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder.svg';
                           }}
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-t-lg">
