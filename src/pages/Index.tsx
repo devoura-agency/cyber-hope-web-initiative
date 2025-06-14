@@ -21,7 +21,7 @@ const Index = () => {
     {
       icon: <Target className="h-8 w-8 text-blue-600" />,
       title: "Research & Innovation",
-      description: "Cutting-edge research in cybersecurity and digital safety technologies"
+      description: "Cutting-edge research in cybersecurity and digital safety technologies including AI-powered solutions"
     },
     {
       icon: <Activity className="h-8 w-8 text-blue-600" />,
@@ -31,10 +31,18 @@ const Index = () => {
   ];
 
   const stats = [
-    { number: "1000+", label: "Lives Impacted" },
+    { number: "3000+", label: "Students Reached" },
     { number: "50+", label: "Awareness Sessions" },
     { number: "100+", label: "Legal Cases Supported" },
     { number: "24/7", label: "Support Available" }
+  ];
+
+  const achievements = [
+    "Awareness sessions in Medipatnam St. Ann's College (3 sessions, 1000+ girls each)",
+    "Session in Warangal with Balavika Sanjeev's youth group",
+    "Program at Sanskriti Engineering College (900+ students)",
+    "Program at Sanskriti Engineering College (800+ students)",
+    "Two-session awareness at IIIT Basar for both boys and girls"
   ];
 
   return (
@@ -45,7 +53,7 @@ const Index = () => {
       <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white py-20 overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cg fill-opacity=\"0.1\"%3E%3Cpolygon fill=\"%23fff\" points=\"50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40\"/%3E%3C/g%3E%3C/svg%3E')] bg-repeat"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -67,7 +75,7 @@ const Index = () => {
                 <span className="text-white">Initiative Foundation</span>
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-2xl">
-                Protecting victims of cybercrime and creating awareness for a safer digital world. Together, we build hope in the digital age.
+                A registered non-profit organization dedicated to cybercrime awareness, online safety education, women protection, and digital mental health support across India.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg">
@@ -98,10 +106,11 @@ const Index = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">About Our Foundation</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">About Cyber Helps NGO</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We are a dedicated NGO focused on supporting victims of cybercrime while creating widespread awareness 
-              about digital safety and security in our interconnected world.
+              CYBERHOPE HELP INITIATIVE FOUNDATION is a registered non-profit organization in New Delhi 
+              (RegNo: TS/2024/0397972 with 12A,80G darpan certificate) working towards cybercrime awareness, 
+              online safety education, women protection, and digital mental health support across India.
             </p>
           </div>
 
@@ -113,7 +122,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 leading-relaxed">
-                  Comprehensive support for victims of cybercrime, legal issues, drug control, and child labor with 24/7 assistance
+                  Comprehensive support for victims of cybercrime, legal issues, drug control, and child labor with 24/7 assistance and AI-powered guidance
                 </p>
               </CardContent>
             </Card>
@@ -125,7 +134,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 leading-relaxed">
-                  Promoting cybersecurity through media, films, camps, videos, and social media outreach to educate communities
+                  Promoting cybersecurity through media, films, camps, videos, and social media outreach with specialized consulting services
                 </p>
               </CardContent>
             </Card>
@@ -133,11 +142,11 @@ const Index = () => {
             <Card className="text-center p-8 hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-green-50 to-emerald-50">
               <CardHeader>
                 <Users className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                <CardTitle className="text-2xl text-gray-800">Community Impact</CardTitle>
+                <CardTitle className="text-2xl text-gray-800">AI-Powered Innovation</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 leading-relaxed">
-                  Building stronger communities through education, training, and sustainable revenue initiatives for lasting change
+                  Using AI tools for training programs, online support systems, and mental health support for individuals with suicidal thoughts
                 </p>
               </CardContent>
             </Card>
@@ -145,41 +154,64 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Key Achievements Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Key Achievements</h2>
+            <p className="text-xl text-gray-600">Our impactful programs reaching thousands across educational institutions</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {achievements.map((achievement, index) => (
+              <div key={index} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-bold text-sm">{index + 1}</span>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">{achievement}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Mission & Activities */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Mission */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 shadow-lg">
               <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
                 <Target className="h-8 w-8 text-blue-600 mr-3" />
-                Our Mission
+                Our Mission & Collaboration
               </h2>
               <div className="space-y-6">
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-blue-50">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-white">
                   <Scale className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
                   <p className="text-gray-700 font-medium">
-                    Provide comprehensive legal aid and financial assistance to victims of cybercrime
+                    Collaborate with government agencies, law enforcement bodies, technology companies, cybersecurity firms, legal experts, and academic institutions
                   </p>
                 </div>
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-green-50">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-white">
                   <Shield className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
                   <p className="text-gray-700 font-medium">
-                    Promote awareness and education to prevent future cyber incidents and protect communities
+                    Diversify revenue streams through creative funding opportunities while ensuring financial stability and mission fulfillment
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Activities */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-gradient-to-br from-gray-50 to-purple-50 rounded-2xl p-8 shadow-lg">
               <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center">
                 <Activity className="h-8 w-8 text-blue-600 mr-3" />
                 Our Activities
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {activities.map((activity, index) => (
-                  <div key={index} className="p-5 rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-300">
+                  <div key={index} className="p-5 rounded-xl bg-white hover:shadow-md transition-all duration-300">
                     <div className="flex items-center space-x-3 mb-3">
                       {activity.icon}
                       <h3 className="font-bold text-gray-900">{activity.title}</h3>
@@ -194,7 +226,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Get In Touch</h2>
@@ -202,19 +234,19 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors">
+            <div className="text-center p-6 rounded-xl bg-white hover:shadow-lg transition-all duration-300">
               <Phone className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h3 className="font-semibold text-gray-900 mb-2">Call Us</h3>
               <p className="text-gray-600">9849606691</p>
             </div>
             
-            <div className="text-center p-6 rounded-xl bg-green-50 hover:bg-green-100 transition-colors">
+            <div className="text-center p-6 rounded-xl bg-white hover:shadow-lg transition-all duration-300">
               <Mail className="h-12 w-12 text-green-600 mx-auto mb-4" />
               <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
               <p className="text-gray-600">info@chhif.org</p>
             </div>
             
-            <div className="text-center p-6 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors">
+            <div className="text-center p-6 rounded-xl bg-white hover:shadow-lg transition-all duration-300">
               <Instagram className="h-12 w-12 text-pink-600 mx-auto mb-4" />
               <h3 className="font-semibold text-gray-900 mb-2">Follow Us</h3>
               <p className="text-gray-600">@chhifngo</p>
@@ -228,8 +260,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-4">Join Our Mission Today</h2>
           <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-            Be part of the solution. Help us create a safer digital world for everyone. 
-            Your support makes a difference in protecting communities from cyber threats.
+            Be part of the solution. Help us create a safer digital world for everyone through innovative AI-powered solutions and comprehensive support systems.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100 shadow-lg">
