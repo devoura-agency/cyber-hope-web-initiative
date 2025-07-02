@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +19,7 @@ interface MemberFormData {
   joiningDate: string;
   contributions: string;
   certificates: string;
-  profileImage: FileList;
+  profileImageUrl: string;
 }
 
 const MemberForm = () => {
@@ -50,17 +49,9 @@ const MemberForm = () => {
     }
   };
 
-  const uploadProfileImage = async (image: File) => {
-    const imageRef = ref(storage, `members/${Date.now()}_${image.name}`);
-    const snapshot = await uploadBytes(imageRef, image);
-    return await getDownloadURL(snapshot.ref);
-  };
-
   const onSubmit = async (data: MemberFormData) => {
     try {
       setLoading(true);
-      
-      const profileImageUrl = await uploadProfileImage(data.profileImage[0]);
       
       await addDoc(collection(db, 'members'), {
         uid: nextUID,
@@ -72,7 +63,7 @@ const MemberForm = () => {
         joiningDate: data.joiningDate,
         contributions: data.contributions,
         certificates: data.certificates,
-        profileImage: profileImageUrl,
+        profileImage: data.profileImageUrl,
         referralCount: 0,
         createdAt: new Date().toISOString(),
       });
@@ -180,15 +171,14 @@ const MemberForm = () => {
         </div>
 
         <div>
-          <Label htmlFor="profileImage">Profile Image *</Label>
+          <Label htmlFor="profileImageUrl">Profile Image URL *</Label>
           <Input
-            id="profileImage"
-            type="file"
-            accept="image/*"
-            {...register('profileImage', { required: 'Profile image is required' })}
-            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            id="profileImageUrl"
+            type="url"
+            {...register('profileImageUrl', { required: 'Profile image URL is required' })}
+            placeholder="https://example.com/image.jpg"
           />
-          {errors.profileImage && <p className="text-red-500 text-sm mt-1">{errors.profileImage.message}</p>}
+          {errors.profileImageUrl && <p className="text-red-500 text-sm mt-1">{errors.profileImageUrl.message}</p>}
         </div>
 
         <Button type="submit" disabled={loading} className="w-full">

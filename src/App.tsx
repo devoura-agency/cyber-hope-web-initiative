@@ -20,6 +20,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import CancellationRefund from "./pages/CancellationRefund";
 import ShippingDelivery from "./pages/ShippingDelivery";
+import CyberSecurityEducation from "./pages/CyberSecurityEducation";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/cancellation-refund" element={<CancellationRefund />} />
           <Route path="/shipping-delivery" element={<ShippingDelivery />} />
+          <Route path="/cyber-security-education" element={<CyberSecurityEducation />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

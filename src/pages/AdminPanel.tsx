@@ -5,13 +5,14 @@ import { auth } from '@/lib/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, Activity, LogOut } from 'lucide-react';
+import { Shield, Users, Activity, LogOut, MessageSquareQuote } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AdminAuth from '@/components/admin/AdminAuth';
 import ActivityForm from '@/components/admin/ActivityForm';
 import MemberForm from '@/components/admin/MemberForm';
 import MembersList from '@/components/admin/MembersList';
+import TestimonialForm from '@/components/admin/TestimonialForm';
 
 const AdminPanel = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -57,7 +58,7 @@ const AdminPanel = () => {
             <div className="text-center flex-1">
               <Shield className="h-16 w-16 text-blue-600 mx-auto mb-6" />
               <h1 className="text-4xl font-bold text-gray-900 mb-4">Admin Panel</h1>
-              <p className="text-lg text-gray-600">Manage activities and members</p>
+              <p className="text-lg text-gray-600">Manage activities, members, and testimonials</p>
             </div>
             <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
@@ -66,7 +67,7 @@ const AdminPanel = () => {
           </div>
 
           <Tabs defaultValue="activities" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="activities" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 Activities
@@ -79,13 +80,17 @@ const AdminPanel = () => {
                 <Users className="h-4 w-4" />
                 Manage Members
               </TabsTrigger>
+              <TabsTrigger value="testimonials" className="flex items-center gap-2">
+                <MessageSquareQuote className="h-4 w-4" />
+                Testimonials
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="activities">
               <Card>
                 <CardHeader>
                   <CardTitle>Add New Activity</CardTitle>
-                  <CardDescription>Upload activities to showcase your work (use image links for now)</CardDescription>
+                  <CardDescription>Upload activities to showcase your work (use image links)</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ActivityForm />
@@ -97,7 +102,7 @@ const AdminPanel = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Add New Member</CardTitle>
-                  <CardDescription>Register new members with unique UID (use image links for profile pictures)</CardDescription>
+                  <CardDescription>Register new members with unique UID (use image URLs for profile pictures)</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <MemberForm />
@@ -113,6 +118,18 @@ const AdminPanel = () => {
                 </CardHeader>
                 <CardContent>
                   <MembersList />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="testimonials">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add New Testimonial</CardTitle>
+                  <CardDescription>Add testimonials with YouTube video links</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TestimonialForm />
                 </CardContent>
               </Card>
             </TabsContent>
