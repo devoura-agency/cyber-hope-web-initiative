@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Link } from 'react-router-dom';
-import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram, Calendar, MapPin, Eye } from 'lucide-react';
+import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram, Calendar, MapPin, Eye, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
@@ -83,14 +83,22 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                <Link to="/about">
-                  Learn More <ArrowRight className="ml-2 h-5 w-5" />
+              <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+                <Link to="/donation">
+                  <Gift className="mr-2 h-5 w-5" />
+                  Donate Now
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
-                <Link to="/contact">
-                  Report Crime
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Link to="/gallery">
+                  <Eye className="mr-2 h-5 w-5" />
+                  Activities
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black">
+                <Link to="/join">
+                  <Users className="mr-2 h-5 w-5" />
+                  Join Us
                 </Link>
               </Button>
             </div>

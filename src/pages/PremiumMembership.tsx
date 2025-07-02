@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Check, Star, Shield, Award, Users, Phone, Mail, Zap, Gift, Heart, BookOpen, UserCheck, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -234,11 +235,11 @@ const PremiumMembership = () => {
             Join thousands of members who are already part of our cybersecurity community
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Join Now
+            <Button asChild size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Link to="/join">Join Now</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-              Learn More
+            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+              <Link to="/about">Learn More</Link>
             </Button>
           </div>
         </div>

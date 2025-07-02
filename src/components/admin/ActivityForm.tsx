@@ -1,177 +1,178 @@
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { Upload } from 'lucide-react';
-
-interface ActivityFormData {
-  title: string;
-  content: string;
-  date: string;
-  location: string;
-  participants: number;
-  tag: string;
-  description: string;
-  images: FileList;
-}
+import { toast } from 'sonner';
+import { Calendar, MapPin, Users, Tag, FileText, Image } from 'lucide-react';
 
 const ActivityForm = () => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    content: '',
+    date: '',
+    location: '',
+    participants: '',
+    tag: '',
+    images: ''
+  });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ActivityFormData>();
 
-  const uploadImages = async (images: FileList) => {
-    const imageUrls = [];
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i];
-      const imageRef = ref(storage, `activities/${Date.now()}_${image.name}`);
-      const snapshot = await uploadBytes(imageRef, image);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      imageUrls.push(downloadURL);
-    }
-    return imageUrls;
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const onSubmit = async (data: ActivityFormData) => {
     try {
-      setLoading(true);
-      
-      const imageUrls = await uploadImages(data.images);
+      const imageUrls = formData.images.split(',').map(url => url.trim()).filter(url => url);
       
       await addDoc(collection(db, 'activities'), {
-        title: data.title,
-        content: data.content,
-        date: data.date,
-        location: data.location,
-        participants: Number(data.participants),
-        tag: data.tag,
-        description: data.description,
+        ...formData,
+        participants: parseInt(formData.participants),
         images: imageUrls,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date()
       });
 
-      toast({
-        title: "Success!",
-        description: "Activity added successfully",
+      toast.success('Activity added successfully!');
+      setFormData({
+        title: '',
+        description: '',
+        content: '',
+        date: '',
+        location: '',
+        participants: '',
+        tag: '',
+        images: ''
       });
-      
-      reset();
     } catch (error) {
       console.error('Error adding activity:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add activity",
-        variant: "destructive"
-      });
+      toast.error('Failed to add activity');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <Label htmlFor="title">Title *</Label>
+        <div className="space-y-2">
+          <Label htmlFor="title" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Activity Title
+          </Label>
           <Input
             id="title"
-            {...register('title', { required: 'Title is required' })}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+            placeholder="Enter activity title"
           />
-          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
         </div>
 
-        <div>
-          <Label htmlFor="tag">Tag *</Label>
+        <div className="space-y-2">
+          <Label htmlFor="tag" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Tag
+          </Label>
           <Input
             id="tag"
-            {...register('tag', { required: 'Tag is required' })}
-            placeholder="e.g., Education, Workshop, Legal Aid"
+            value={formData.tag}
+            onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+            required
+            placeholder="e.g., Workshop, Awareness, Training"
           />
-          {errors.tag && <p className="text-red-500 text-sm mt-1">{errors.tag.message}</p>}
         </div>
 
-        <div>
-          <Label htmlFor="date">Date *</Label>
+        <div className="space-y-2">
+          <Label htmlFor="date" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Date
+          </Label>
           <Input
             id="date"
             type="date"
-            {...register('date', { required: 'Date is required' })}
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            required
           />
-          {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
         </div>
 
-        <div>
-          <Label htmlFor="participants">Participants *</Label>
+        <div className="space-y-2">
+          <Label htmlFor="location" className="flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Location
+          </Label>
+          <Input
+            id="location"
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            required
+            placeholder="Enter location"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="participants" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Participants Count
+          </Label>
           <Input
             id="participants"
             type="number"
-            {...register('participants', { required: 'Participants count is required' })}
+            value={formData.participants}
+            onChange={(e) => setFormData({ ...formData, participants: e.target.value })}
+            required
+            placeholder="Number of participants"
           />
-          {errors.participants && <p className="text-red-500 text-sm mt-1">{errors.participants.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="images" className="flex items-center gap-2">
+            <Image className="h-4 w-4" />
+            Image URLs
+          </Label>
+          <Input
+            id="images"
+            value={formData.images}
+            onChange={(e) => setFormData({ ...formData, images: e.target.value })}
+            required
+            placeholder="Enter image URLs separated by commas"
+          />
+          <p className="text-xs text-gray-500">
+            Enter multiple image URLs separated by commas. Use direct image links (ending with .jpg, .png, etc.)
+          </p>
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="location">Location *</Label>
-        <Input
-          id="location"
-          {...register('location', { required: 'Location is required' })}
-        />
-        {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description *</Label>
+      <div className="space-y-2">
+        <Label htmlFor="description">Short Description</Label>
         <Textarea
           id="description"
-          {...register('description', { required: 'Description is required' })}
-          rows={3}
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          required
+          placeholder="Brief description of the activity"
+          rows={2}
         />
-        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
       </div>
 
-      <div>
-        <Label htmlFor="content">Content *</Label>
+      <div className="space-y-2">
+        <Label htmlFor="content">Detailed Content</Label>
         <Textarea
           id="content"
-          {...register('content', { required: 'Content is required' })}
-          rows={5}
+          value={formData.content}
+          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          required
+          placeholder="Detailed description of the activity and its impact"
+          rows={4}
         />
-        {errors.content && <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>}
       </div>
 
-      <div>
-        <Label htmlFor="images">Images *</Label>
-        <Input
-          id="images"
-          type="file"
-          multiple
-          accept="image/*"
-          {...register('images', { required: 'At least one image is required' })}
-          className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
-        {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images.message}</p>}
-      </div>
-
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? (
-          <>
-            <Upload className="mr-2 h-4 w-4 animate-spin" />
-            Uploading...
-          </>
-        ) : (
-          <>
-            <Upload className="mr-2 h-4 w-4" />
-            Add Activity
-          </>
-        )}
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Adding Activity...' : 'Add Activity'}
       </Button>
     </form>
   );
