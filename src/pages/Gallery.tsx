@@ -1,5 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Calendar, MapPin, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,75 +9,48 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-const Gallery = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
+interface Activity {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  participants: number;
+  description: string;
+  images: string[];
+  tag: string;
+  content: string;
+}
 
-  const events = [
-    {
-      id: 1,
-      title: "Cybersecurity Awareness Workshop",
-      date: "2024-05-15",
-      location: "Delhi University",
-      participants: 200,
-      description: "Interactive workshop on digital safety for college students",
-      image: "/placeholder.svg",
-      category: "Education"
-    },
-    {
-      id: 2,
-      title: "Legal Aid Camp",
-      date: "2024-05-10",
-      location: "Community Center, Mumbai",
-      participants: 150,
-      description: "Free legal consultation for cybercrime victims",
-      image: "/placeholder.svg",
-      category: "Legal Aid"
-    },
-    {
-      id: 3,
-      title: "School Safety Program",
-      date: "2024-04-28",
-      location: "Government School, Bangalore",
-      participants: 300,
-      description: "Teaching children about online safety and cyber bullying prevention",
-      image: "/placeholder.svg",
-      category: "Education"
-    },
-    {
-      id: 4,
-      title: "Corporate Training Session",
-      date: "2024-04-20",
-      location: "Tech Park, Hyderabad",
-      participants: 80,
-      description: "Cybersecurity training for corporate employees",
-      image: "/placeholder.svg",
-      category: "Corporate"
-    },
-    {
-      id: 5,
-      title: "Women's Safety Digital Workshop",
-      date: "2024-04-15",
-      location: "Women's College, Pune",
-      participants: 250,
-      description: "Special focus on digital safety for women and girls",
-      image: "/placeholder.svg",
-      category: "Women Safety"
-    },
-    {
-      id: 6,
-      title: "Senior Citizens Cyber Awareness",
-      date: "2024-04-05",
-      location: "Senior Center, Chennai",
-      participants: 100,
-      description: "Helping elderly citizens understand and prevent online fraud",
-      image: "/placeholder.svg",
-      category: "Senior Citizens"
+const Gallery = () => {
+  const [selectedImage, setSelectedImage] = useState<Activity | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    fetchActivities();
+  }, []);
+
+  const fetchActivities = async () => {
+    try {
+      const activitiesRef = collection(db, 'activities');
+      const q = query(activitiesRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const activitiesData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Activity[];
+      setActivities(activitiesData);
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const achievements = [
     {
-      number: "50,000+",
+      number: `${activities.reduce((sum, activity) => sum + activity.participants, 0)}+`,
       label: "People Educated",
       icon: Users
     },
@@ -85,8 +60,8 @@ const Gallery = () => {
       icon: Calendar
     },
     {
-      number: "100+",
-      label: "Workshops Conducted",
+      number: `${activities.length}+`,
+      label: "Activities Conducted",
       icon: MapPin
     },
     {
@@ -96,12 +71,22 @@ const Gallery = () => {
     }
   ];
 
-  const categories = ["All", "Education", "Legal Aid", "Corporate", "Women Safety", "Senior Citizens"];
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const categories = ["All", ...Array.from(new Set(activities.map(activity => activity.tag)))];
 
-  const filteredEvents = selectedCategory === "All" 
-    ? events 
-    : events.filter(event => event.category === selectedCategory);
+  const filteredActivities = selectedCategory === "All" 
+    ? activities 
+    : activities.filter(activity => activity.tag === selectedCategory);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -165,40 +150,40 @@ const Gallery = () => {
             ))}
           </div>
 
-          {/* Events Grid */}
+          {/* Activities Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event) => (
-              <Card key={event.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+            {filteredActivities.map((activity) => (
+              <Card key={activity.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="relative">
                   <img
-                    src={event.image}
-                    alt={event.title}
+                    src={activity.images[0]}
+                    alt={activity.title}
                     className="w-full h-48 object-cover rounded-t-lg"
-                    onClick={() => setSelectedImage(event)}
+                    onClick={() => setSelectedImage(activity)}
                   />
                   <div className="absolute top-4 left-4">
                     <span className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium">
-                      {event.category}
+                      {activity.tag}
                     </span>
                   </div>
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-lg line-clamp-2">{event.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">{event.description}</CardDescription>
+                  <CardTitle className="text-lg line-clamp-2">{activity.title}</CardTitle>
+                  <CardDescription className="line-clamp-2">{activity.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(event.date).toLocaleDateString()}</span>
+                      <span>{new Date(activity.date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <MapPin className="h-4 w-4" />
-                      <span>{event.location}</span>
+                      <span>{activity.location}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4" />
-                      <span>{event.participants} participants</span>
+                      <span>{activity.participants} participants</span>
                     </div>
                   </div>
                 </CardContent>
@@ -217,11 +202,16 @@ const Gallery = () => {
                 <DialogTitle>{selectedImage.title}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <img
-                  src={selectedImage.image}
-                  alt={selectedImage.title}
-                  className="w-full h-96 object-cover rounded-lg"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedImage.images.map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`${selectedImage.title} - ${index + 1}`}
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  ))}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-gray-500" />
@@ -236,7 +226,14 @@ const Gallery = () => {
                     <span>{selectedImage.participants} participants</span>
                   </div>
                 </div>
-                <p className="text-gray-700">{selectedImage.description}</p>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-700">{selectedImage.description}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Content</h3>
+                  <p className="text-gray-700">{selectedImage.content}</p>
+                </div>
               </div>
             </>
           )}

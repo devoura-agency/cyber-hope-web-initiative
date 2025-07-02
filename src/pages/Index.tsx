@@ -1,12 +1,50 @@
 
+import { useState, useEffect } from 'react';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Link } from 'react-router-dom';
-import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram } from 'lucide-react';
+import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram, Calendar, MapPin, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+interface Activity {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  participants: number;
+  description: string;
+  images: string[];
+  tag: string;
+}
+
 const Index = () => {
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRecentActivities();
+  }, []);
+
+  const fetchRecentActivities = async () => {
+    try {
+      const activitiesRef = collection(db, 'activities');
+      const q = query(activitiesRef, orderBy('createdAt', 'desc'), limit(5));
+      const querySnapshot = await getDocs(q);
+      const activitiesData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Activity[];
+      setRecentActivities(activitiesData);
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stats = [
     { number: "3000+", label: "Students Reached", icon: <Users className="h-6 w-6" /> },
     { number: "50+", label: "Awareness Sessions", icon: <Shield className="h-6 w-6" /> },
@@ -14,116 +52,59 @@ const Index = () => {
     { number: "24/7", label: "Support Available", icon: <Heart className="h-6 w-6" /> }
   ];
 
-  const services = [
-    {
-      icon: <Shield className="h-8 w-8" />,
-      title: "Cybersecurity Awareness",
-      description: "Educational programs and training sessions for digital safety across institutions and communities.",
-      features: ["Digital Safety Training", "Institutional Programs", "Community Workshops"]
-    },
-    {
-      icon: <Scale className="h-8 w-8" />,
-      title: "Legal Support",
-      description: "Professional legal aid and consultation for cybercrime victims with expert guidance.",
-      features: ["Legal Consultation", "Case Support", "Expert Guidance"]
-    },
-    {
-      icon: <Heart className="h-8 w-8" />,
-      title: "Victim Assistance",
-      description: "24/7 support services for those affected by cybercrime, including mental health resources.",
-      features: ["24/7 Support", "Mental Health Care", "Recovery Assistance"]
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative bg-slate-50 py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Content */}
-            <div className="space-y-8">
-              {/* Logo and Title */}
-              <div className="flex items-center space-x-4">
-                <img 
-                  src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
-                  alt="CHHIF Logo" 
-                  className="h-16 w-16 rounded-full"
-                />
-                <div>
-                  <h1 className="text-3xl font-bold text-slate-900">Cyber Hope</h1>
-                  <p className="text-slate-600">Help Initiative Foundation</p>
-                  <p className="text-sm text-slate-500">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
-                </div>
-              </div>
-              
-              {/* Main Heading */}
-              <div className="space-y-6">
-                <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
-                  Protecting Communities from 
-                  <span className="text-blue-600"> Cyber Threats</span>
-                </h2>
-                <p className="text-xl text-slate-600 leading-relaxed">
-                  Empowering individuals and organizations through education, legal support, 
-                  and victim assistance in the digital age.
-                </p>
-              </div>
-              
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Link to="/about">
-                    Learn More <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
-                  <Link to="/contact">
-                    Report Crime
-                  </Link>
-                </Button>
+      <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M20 20c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm-30 0c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10-10-4.477-10-10z"/%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="flex items-center justify-center space-x-4 mb-8">
+              <img 
+                src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
+                alt="CHHIF Logo" 
+                className="h-20 w-20 rounded-full border-4 border-blue-200"
+              />
+              <div className="text-left">
+                <h1 className="text-2xl font-bold">Cyber Hope Help Initiative Foundation</h1>
+                <p className="text-blue-200 text-sm">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
               </div>
             </div>
-
-            {/* Visual Element */}
-            <div className="hidden lg:block">
-              <div className="relative">
-                <div className="w-80 h-80 mx-auto">
-                  {/* Minimalist cyber security visual */}
-                  <div className="absolute inset-0 border-2 border-blue-200 rounded-full"></div>
-                  <div className="absolute inset-8 border border-blue-300 rounded-full"></div>
-                  <div className="absolute inset-16 border border-blue-100 rounded-full"></div>
-                  
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="p-8 bg-blue-600 rounded-full">
-                      <Shield className="h-16 w-16 text-white" />
-                    </div>
-                  </div>
-                  
-                  {/* Floating icons */}
-                  <div className="absolute top-8 right-8 p-3 bg-blue-100 rounded-full">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="absolute bottom-8 left-8 p-3 bg-green-100 rounded-full">
-                    <Scale className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div className="absolute top-1/2 right-0 p-3 bg-red-100 rounded-full">
-                    <Heart className="h-5 w-5 text-red-600" />
-                  </div>
-                </div>
-              </div>
+            
+            <h2 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
+              Securing Digital
+              <span className="text-blue-400 block">Communities</span>
+            </h2>
+            
+            <p className="text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed">
+              Empowering individuals through cybersecurity education, legal support, and victim assistance.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+                <Link to="/about">
+                  Learn More <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 text-lg">
+                <Link to="/contact">
+                  Report Crime
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white border-t border-gray-100">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
+              <div key={index} className="text-center p-6 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
                 <div className="flex justify-center text-blue-600 mb-4">
                   {stat.icon}
                 </div>
@@ -135,8 +116,75 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Recent Activities Section */}
       <section className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Recent Activities</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              See our latest initiatives and impact in creating safer digital communities
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-slate-600">Loading activities...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {recentActivities.map((activity) => (
+                <Card key={activity.id} className="hover:shadow-lg transition-shadow">
+                  <div className="relative">
+                    <img
+                      src={activity.images[0]}
+                      alt={activity.title}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+                        {activity.tag}
+                      </span>
+                    </div>
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-lg line-clamp-2">{activity.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">{activity.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm text-slate-600">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>{new Date(activity.date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{activity.location}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Users className="h-4 w-4" />
+                        <span>{activity.participants} participants</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          <div className="text-center mt-12">
+            <Button asChild variant="outline" size="lg">
+              <Link to="/gallery">
+                <Eye className="mr-2 h-5 w-5" />
+                View All Activities
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Our Services</h2>
@@ -146,95 +194,76 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 p-4 bg-blue-50 rounded-full w-fit text-blue-600">
-                    {service.icon}
-                  </div>
-                  <CardTitle className="text-xl text-slate-900">{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-slate-600 mb-6">{service.description}</p>
-                  <div className="space-y-2">
-                    {service.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-center justify-center text-sm text-slate-500">
-                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Shield className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Cybersecurity Awareness</h3>
+              <p className="text-slate-600 mb-6">Educational programs and training sessions for digital safety across institutions and communities.</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Digital Safety Training
+                </div>
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Institutional Programs
+                </div>
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Community Workshops
+                </div>
+              </div>
+            </Card>
+
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Scale className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Legal Support</h3>
+              <p className="text-slate-600 mb-6">Professional legal aid and consultation for cybercrime victims with expert guidance.</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Legal Consultation
+                </div>
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Case Support
+                </div>
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Expert Guidance
+                </div>
+              </div>
+            </Card>
+
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Heart className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Victim Assistance</h3>
+              <p className="text-slate-600 mb-6">24/7 support services for those affected by cybercrime, including mental health resources.</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  24/7 Support
+                </div>
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Mental Health Care
+                </div>
+                <div className="flex items-center justify-center text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Recovery Assistance
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">
-                Building Safer Digital Communities
-              </h2>
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                CHHIF is a registered NGO dedicated to combating cybercrime through education, 
-                legal support, and community empowerment. We work with government agencies and 
-                technology companies to create a safer digital world.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div className="flex items-center p-4 bg-slate-50 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                  <span className="text-slate-700">12A & 80G Certified</span>
-                </div>
-                <div className="flex items-center p-4 bg-slate-50 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                  <span className="text-slate-700">Government Recognized</span>
-                </div>
-                <div className="flex items-center p-4 bg-slate-50 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                  <span className="text-slate-700">Expert Legal Team</span>
-                </div>
-                <div className="flex items-center p-4 bg-slate-50 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                  <span className="text-slate-700">24/7 Support</span>
-                </div>
-              </div>
-
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Link to="/about">Learn About Our Mission</Link>
-              </Button>
-            </div>
-
-            <div className="bg-slate-50 p-8 rounded-lg">
-              <h3 className="text-2xl font-bold text-slate-900 mb-6">Key Achievements</h3>
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2 mr-4"></div>
-                  <p className="text-slate-600">3 awareness sessions at Medipatnam St. Ann's College (3000+ girls)</p>
-                </div>
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2 mr-4"></div>
-                  <p className="text-slate-600">Youth engagement session in Warangal</p>
-                </div>
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2 mr-4"></div>
-                  <p className="text-slate-600">Training at Sanskriti Engineering College (1700+ students)</p>
-                </div>
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2 mr-4"></div>
-                  <p className="text-slate-600">Comprehensive program at IIIT Basar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
+      {/* Contact CTA Section */}
       <section className="py-20 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -243,7 +272,7 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center p-6 border border-slate-700 rounded-lg">
+            <div className="text-center p-6 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
               <div className="p-3 bg-blue-600 rounded-full w-fit mx-auto mb-4">
                 <Phone className="h-6 w-6 text-white" />
               </div>
@@ -252,7 +281,7 @@ const Index = () => {
               <p className="text-slate-300 text-sm">Available 24/7 for urgent cases</p>
             </div>
             
-            <div className="text-center p-6 border border-slate-700 rounded-lg">
+            <div className="text-center p-6 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
               <div className="p-3 bg-green-600 rounded-full w-fit mx-auto mb-4">
                 <Mail className="h-6 w-6 text-white" />
               </div>
@@ -261,7 +290,7 @@ const Index = () => {
               <p className="text-slate-300 text-sm">Detailed case submissions</p>
             </div>
             
-            <div className="text-center p-6 border border-slate-700 rounded-lg">
+            <div className="text-center p-6 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
               <div className="p-3 bg-pink-600 rounded-full w-fit mx-auto mb-4">
                 <Instagram className="h-6 w-6 text-white" />
               </div>
@@ -279,6 +308,9 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Link to="/join">Become a Volunteer</Link>
+              </Button>
+              <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white">
+                <Link to="/premium-membership">Premium Membership</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
                 <Link to="/contact">Report a Crime</Link>

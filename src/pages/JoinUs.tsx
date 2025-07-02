@@ -1,5 +1,7 @@
-
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Calendar, Upload, User, Phone, Mail, MapPin, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,56 +13,118 @@ import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+interface FormData {
+  title: string;
+  name: string;
+  gender: string;
+  mobile: string;
+  whatsapp: string;
+  dob: string;
+  email: string;
+  parentName: string;
+  parentMobile: string;
+  maritalStatus: string;
+  address: string;
+  country: string;
+  state: string;
+  district: string;
+  committee: string;
+  subCommittee: string;
+  supportingAmount: string;
+  customAmount: string;
+  pincode: string;
+  password: string;
+  confirmPassword: string;
+  referralCode: string;
+  image: FileList | null;
+}
+
 const JoinUs = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    title: '',
-    name: '',
-    gender: '',
-    mobile: '',
-    whatsapp: '',
-    dob: '',
-    email: '',
-    aadhar: '',
-    parentName: '',
-    parentMobile: '',
-    maritalStatus: '',
-    address: '',
-    country: '',
-    state: '',
-    district: '',
-    committee: '',
-    subCommittee: '',
-    supportingAmount: '',
-    pincode: '',
-    password: '',
-    confirmPassword: '',
-    image: null
-  });
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const supportingAmount = watch('supportingAmount');
+
+  const validateReferralCode = async (referralCode: string) => {
+    if (!referralCode) return true; // Optional field
+    
+    const membersRef = collection(db, 'members');
+    const q = query(membersRef, where('uid', '==', referralCode));
+    const querySnapshot = await getDocs(q);
+    
+    return !querySnapshot.empty;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const updateReferralCount = async (referralCode: string) => {
+    if (!referralCode) return;
     
-    if (formData.password !== formData.confirmPassword) {
+    const membersRef = collection(db, 'members');
+    const q = query(membersRef, where('uid', '==', referralCode));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const memberDoc = querySnapshot.docs[0];
+      await updateDoc(doc(db, 'members', memberDoc.id), {
+        referralCount: increment(1)
+      });
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      setLoading(true);
+      
+      if (data.password !== data.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "Passwords do not match",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validate referral code if provided
+      if (data.referralCode) {
+        const isValidReferral = await validateReferralCode(data.referralCode);
+        if (!isValidReferral) {
+          toast({
+            title: "Error",
+            description: "Invalid referral code",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      // Submit application
+      await addDoc(collection(db, 'applications'), {
+        ...data,
+        supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      });
+
+      // Update referral count if valid referral code provided
+      if (data.referralCode) {
+        await updateReferralCount(data.referralCode);
+      }
+
+      toast({
+        title: "Application Submitted!",
+        description: "Your membership application has been submitted successfully. We will review and contact you soon.",
+      });
+
+    } catch (error) {
+      console.error('Error submitting application:', error);
       toast({
         title: "Error",
-        description: "Passwords do not match",
+        description: "Failed to submit application. Please try again.",
         variant: "destructive"
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // Here you would typically send the data to your backend
-    console.log('Form submitted:', formData);
-    
-    toast({
-      title: "Application Submitted!",
-      description: "Your membership application has been submitted successfully. We will review and contact you soon.",
-    });
   };
 
   const supportingAmounts = [
@@ -99,7 +163,7 @@ const JoinUs = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
@@ -107,7 +171,7 @@ const JoinUs = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="title">Title *</Label>
-                      <Select onValueChange={(value) => handleInputChange('title', value)}>
+                      <Select {...register('title', { required: 'Title is required' })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select title" />
                         </SelectTrigger>
@@ -118,23 +182,23 @@ const JoinUs = () => {
                           <SelectItem value="dr">Dr.</SelectItem>
                         </SelectContent>
                       </Select>
+                      {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
                     </div>
                     
                     <div className="md:col-span-2">
                       <Label htmlFor="name">Full Name *</Label>
                       <Input
                         id="name"
-                        value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        required
+                        {...register('name', { required: 'Name is required' })}
                       />
+                      {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="gender">Gender *</Label>
-                      <Select onValueChange={(value) => handleInputChange('gender', value)}>
+                      <Select {...register('gender', { required: 'Gender is required' })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
@@ -144,6 +208,7 @@ const JoinUs = () => {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
+                      {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
                     </div>
 
                     <div>
@@ -151,10 +216,9 @@ const JoinUs = () => {
                       <Input
                         id="dob"
                         type="date"
-                        value={formData.dob}
-                        onChange={(e) => handleInputChange('dob', e.target.value)}
-                        required
+                        {...register('dob', { required: 'Date of birth is required' })}
                       />
+                      {errors.dob && <p className="text-red-500 text-sm mt-1">{errors.dob.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -169,10 +233,9 @@ const JoinUs = () => {
                       <Input
                         id="mobile"
                         type="tel"
-                        value={formData.mobile}
-                        onChange={(e) => handleInputChange('mobile', e.target.value)}
-                        required
+                        {...register('mobile', { required: 'Mobile number is required' })}
                       />
+                      {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile.message}</p>}
                     </div>
 
                     <div>
@@ -180,10 +243,9 @@ const JoinUs = () => {
                       <Input
                         id="whatsapp"
                         type="tel"
-                        value={formData.whatsapp}
-                        onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                        required
+                        {...register('whatsapp', { required: 'WhatsApp number is required' })}
                       />
+                      {errors.whatsapp && <p className="text-red-500 text-sm mt-1">{errors.whatsapp.message}</p>}
                     </div>
                   </div>
 
@@ -192,21 +254,26 @@ const JoinUs = () => {
                     <Input
                       id="email"
                       type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      required
+                      {...register('email', { required: 'Email is required' })}
                     />
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                   </div>
+                </div>
 
+                {/* Referral Code */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Referral Information</h3>
+                  
                   <div>
-                    <Label htmlFor="aadhar">Aadhar Number *</Label>
+                    <Label htmlFor="referralCode">Referral Code (Optional)</Label>
                     <Input
-                      id="aadhar"
-                      value={formData.aadhar}
-                      onChange={(e) => handleInputChange('aadhar', e.target.value)}
-                      placeholder="xxxx-xxxx-xxxx"
-                      required
+                      id="referralCode"
+                      {...register('referralCode')}
+                      placeholder="Enter existing member's UID (e.g., 0001)"
                     />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Enter the UID of an existing member who referred you (optional)
+                    </p>
                   </div>
                 </div>
 
@@ -219,10 +286,9 @@ const JoinUs = () => {
                       <Label htmlFor="parentName">Father/Mother/Spouse Name *</Label>
                       <Input
                         id="parentName"
-                        value={formData.parentName}
-                        onChange={(e) => handleInputChange('parentName', e.target.value)}
-                        required
+                        {...register('parentName', { required: 'Parent name is required' })}
                       />
+                      {errors.parentName && <p className="text-red-500 text-sm mt-1">{errors.parentName.message}</p>}
                     </div>
 
                     <div>
@@ -230,16 +296,15 @@ const JoinUs = () => {
                       <Input
                         id="parentMobile"
                         type="tel"
-                        value={formData.parentMobile}
-                        onChange={(e) => handleInputChange('parentMobile', e.target.value)}
-                        required
+                        {...register('parentMobile', { required: 'Parent mobile is required' })}
                       />
+                      {errors.parentMobile && <p className="text-red-500 text-sm mt-1">{errors.parentMobile.message}</p>}
                     </div>
                   </div>
 
                   <div>
                     <Label htmlFor="maritalStatus">Marital Status *</Label>
-                    <Select onValueChange={(value) => handleInputChange('maritalStatus', value)}>
+                    <Select {...register('maritalStatus', { required: 'Marital status is required' })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select marital status" />
                       </SelectTrigger>
@@ -250,6 +315,7 @@ const JoinUs = () => {
                         <SelectItem value="widowed">Widowed</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.maritalStatus && <p className="text-red-500 text-sm mt-1">{errors.maritalStatus.message}</p>}
                   </div>
                 </div>
 
@@ -261,10 +327,9 @@ const JoinUs = () => {
                     <Label htmlFor="address">Address *</Label>
                     <Textarea
                       id="address"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      required
+                      {...register('address', { required: 'Address is required' })}
                     />
+                    {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,20 +337,18 @@ const JoinUs = () => {
                       <Label htmlFor="country">Country *</Label>
                       <Input
                         id="country"
-                        value={formData.country}
-                        onChange={(e) => handleInputChange('country', e.target.value)}
-                        required
+                        {...register('country', { required: 'Country is required' })}
                       />
+                      {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country.message}</p>}
                     </div>
 
                     <div>
                       <Label htmlFor="state">State *</Label>
                       <Input
                         id="state"
-                        value={formData.state}
-                        onChange={(e) => handleInputChange('state', e.target.value)}
-                        required
+                        {...register('state', { required: 'State is required' })}
                       />
+                      {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>}
                     </div>
                   </div>
 
@@ -294,20 +357,18 @@ const JoinUs = () => {
                       <Label htmlFor="district">District *</Label>
                       <Input
                         id="district"
-                        value={formData.district}
-                        onChange={(e) => handleInputChange('district', e.target.value)}
-                        required
+                        {...register('district', { required: 'District is required' })}
                       />
+                      {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district.message}</p>}
                     </div>
 
                     <div>
                       <Label htmlFor="pincode">Pincode *</Label>
                       <Input
                         id="pincode"
-                        value={formData.pincode}
-                        onChange={(e) => handleInputChange('pincode', e.target.value)}
-                        required
+                        {...register('pincode', { required: 'Pincode is required' })}
                       />
+                      {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -319,7 +380,7 @@ const JoinUs = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="committee">Committee *</Label>
-                      <Select onValueChange={(value) => handleInputChange('committee', value)}>
+                      <Select {...register('committee', { required: 'Committee is required' })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select committee" />
                         </SelectTrigger>
@@ -330,11 +391,12 @@ const JoinUs = () => {
                           <SelectItem value="community">Community Outreach</SelectItem>
                         </SelectContent>
                       </Select>
+                      {errors.committee && <p className="text-red-500 text-sm mt-1">{errors.committee.message}</p>}
                     </div>
 
                     <div>
                       <Label htmlFor="subCommittee">Sub Committee</Label>
-                      <Select onValueChange={(value) => handleInputChange('subCommittee', value)}>
+                      <Select {...register('subCommittee')}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select sub committee" />
                         </SelectTrigger>
@@ -359,8 +421,12 @@ const JoinUs = () => {
                         <Button
                           key={amount.value}
                           type="button"
-                          variant={formData.supportingAmount === amount.value ? "default" : "outline"}
-                          onClick={() => handleInputChange('supportingAmount', amount.value)}
+                          variant={supportingAmount === amount.value ? "default" : "outline"}
+                          onClick={() => {
+                            // Manually trigger the change event for react-hook-form
+                            const event = { target: { name: 'supportingAmount', value: amount.value } };
+                            register('supportingAmount').onChange(event);
+                          }}
                           className="text-sm"
                         >
                           {amount.label}
@@ -368,15 +434,23 @@ const JoinUs = () => {
                       ))}
                     </div>
                     
-                    {formData.supportingAmount === 'custom' && (
+                    {supportingAmount === 'custom' && (
                       <div>
                         <Label htmlFor="customAmount">Custom Amount (₹)</Label>
                         <Input
                           id="customAmount"
                           type="number"
                           placeholder="Enter amount"
-                          onChange={(e) => handleInputChange('customAmount', e.target.value)}
+                          {...register('customAmount', {
+                            required: 'Custom amount is required when "Custom Amount" is selected',
+                            valueAsNumber: true,
+                          })}
                         />
+                        {errors.customAmount && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.customAmount.message}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -392,10 +466,9 @@ const JoinUs = () => {
                       <Input
                         id="password"
                         type="password"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        required
+                        {...register('password', { required: 'Password is required' })}
                       />
+                      {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
                     </div>
 
                     <div>
@@ -403,10 +476,16 @@ const JoinUs = () => {
                       <Input
                         id="confirmPassword"
                         type="password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                        required
+                        {...register('confirmPassword', {
+                          required: 'Confirm password is required',
+                          validate: (value) => value === watch('password') || 'Passwords do not match',
+                        })}
                       />
+                      {errors.confirmPassword && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.confirmPassword.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -421,16 +500,15 @@ const JoinUs = () => {
                       id="image"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleInputChange('image', e.target.files[0])}
+                      {...register('image')}
                       className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                   </div>
                 </div>
 
-                {/* Submit Button */}
                 <div className="text-center pt-6">
-                  <Button type="submit" size="lg" className="px-12">
-                    Submit Application
+                  <Button type="submit" size="lg" className="px-12" disabled={loading}>
+                    {loading ? 'Submitting...' : 'Submit Application'}
                   </Button>
                 </div>
               </form>

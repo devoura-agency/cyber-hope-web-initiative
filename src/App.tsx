@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,9 @@ import NewsWeekly from "./pages/NewsWeekly";
 import JoinUs from "./pages/JoinUs";
 import Resources from "./pages/Resources";
 import Gallery from "./pages/Gallery";
+import Members from "./pages/Members";
+import PremiumMembership from "./pages/PremiumMembership";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,9 +28,12 @@ const App = () => (
           <Route path="/about" element={<AboutUs />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/members" element={<Members />} />
+          <Route path="/premium-membership" element={<PremiumMembership />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/news" element={<NewsWeekly />} />
           <Route path="/join" element={<JoinUs />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
