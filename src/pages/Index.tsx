@@ -53,43 +53,42 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M20 20c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm-30 0c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10-10-4.477-10-10z"/%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="flex items-center justify-center space-x-4 mb-8">
-              <img 
-                src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
-                alt="CHHIF Logo" 
-                className="h-20 w-20 rounded-full border-4 border-blue-200"
-              />
-              <div className="text-left">
-                <h1 className="text-2xl font-bold">Cyber Hope Help Initiative Foundation</h1>
-                <p className="text-blue-200 text-sm">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
-              </div>
+      <section className="relative bg-gradient-to-r from-gray-900 to-blue-900 text-white">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative max-w-6xl mx-auto px-6 py-24">
+          <div className="flex items-center justify-center mb-8">
+            <img 
+              src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
+              alt="CHHIF Logo" 
+              className="h-16 w-16 rounded-full border-2 border-blue-400 mr-4"
+            />
+            <div>
+              <h1 className="text-xl font-bold">Cyber Hope Help Initiative Foundation</h1>
+              <p className="text-blue-300 text-sm">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
             </div>
-            
-            <h2 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
+          </div>
+          
+          <div className="text-center max-w-4xl mx-auto">
+            <h2 className="text-5xl font-bold mb-6 leading-tight">
               Securing Digital
               <span className="text-blue-400 block">Communities</span>
             </h2>
             
-            <p className="text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed">
-              Empowering individuals through cybersecurity education, legal support, and victim assistance.
+            <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+              Empowering individuals through cybersecurity education, legal support, and victim assistance in the digital age.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
                 <Link to="/about">
                   Learn More <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 text-lg">
+              <Button asChild variant="outline" size="lg" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
                 <Link to="/contact">
                   Report Crime
                 </Link>
@@ -101,15 +100,15 @@ const Index = () => {
 
       {/* Stats Section */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center p-6 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+              <div key={index} className="text-center p-6 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                 <div className="flex justify-center text-blue-600 mb-4">
                   {stat.icon}
                 </div>
-                <div className="text-3xl font-bold text-slate-900 mb-2">{stat.number}</div>
-                <div className="text-sm text-slate-600">{stat.label}</div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -117,11 +116,11 @@ const Index = () => {
       </section>
 
       {/* Recent Activities Section */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Recent Activities</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Recent Activities</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               See our latest initiatives and impact in creating safer digital communities
             </p>
           </div>
@@ -129,7 +128,7 @@ const Index = () => {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-slate-600">Loading activities...</p>
+              <p className="mt-4 text-gray-600">Loading activities...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -152,7 +151,7 @@ const Index = () => {
                     <CardDescription className="line-clamp-2">{activity.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2 text-sm text-slate-600">
+                    <div className="space-y-2 text-sm text-gray-600">
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4" />
                         <span>{new Date(activity.date).toLocaleDateString()}</span>
@@ -185,10 +184,10 @@ const Index = () => {
 
       {/* Services Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Our Services</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Services</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Comprehensive support and education to build a safer digital ecosystem
             </p>
           </div>
@@ -198,18 +197,18 @@ const Index = () => {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Shield className="h-8 w-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Cybersecurity Awareness</h3>
-              <p className="text-slate-600 mb-6">Educational programs and training sessions for digital safety across institutions and communities.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Cybersecurity Awareness</h3>
+              <p className="text-gray-600 mb-6">Educational programs and training sessions for digital safety across institutions and communities.</p>
               <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Digital Safety Training
                 </div>
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Institutional Programs
                 </div>
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Community Workshops
                 </div>
@@ -220,18 +219,18 @@ const Index = () => {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Scale className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Legal Support</h3>
-              <p className="text-slate-600 mb-6">Professional legal aid and consultation for cybercrime victims with expert guidance.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Legal Support</h3>
+              <p className="text-gray-600 mb-6">Professional legal aid and consultation for cybercrime victims with expert guidance.</p>
               <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Legal Consultation
                 </div>
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Case Support
                 </div>
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Expert Guidance
                 </div>
@@ -242,18 +241,18 @@ const Index = () => {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Heart className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Victim Assistance</h3>
-              <p className="text-slate-600 mb-6">24/7 support services for those affected by cybercrime, including mental health resources.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Victim Assistance</h3>
+              <p className="text-gray-600 mb-6">24/7 support services for those affected by cybercrime, including mental health resources.</p>
               <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   24/7 Support
                 </div>
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Mental Health Care
                 </div>
-                <div className="flex items-center justify-center text-sm text-slate-500">
+                <div className="flex items-center justify-center text-sm text-gray-500">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                   Recovery Assistance
                 </div>
@@ -264,45 +263,45 @@ const Index = () => {
       </section>
 
       {/* Contact CTA Section */}
-      <section className="py-20 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Need Help? We're Here 24/7</h2>
-            <p className="text-xl text-slate-300">Don't face cybercrime alone - reach out to our expert team</p>
+            <p className="text-xl text-gray-300">Don't face cybercrime alone - reach out to our expert team</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center p-6 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
+            <div className="text-center p-6 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
               <div className="p-3 bg-blue-600 rounded-full w-fit mx-auto mb-4">
                 <Phone className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Emergency Helpline</h3>
               <p className="text-2xl font-bold text-blue-400 mb-2">9849606691</p>
-              <p className="text-slate-300 text-sm">Available 24/7 for urgent cases</p>
+              <p className="text-gray-300 text-sm">Available 24/7 for urgent cases</p>
             </div>
             
-            <div className="text-center p-6 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
+            <div className="text-center p-6 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
               <div className="p-3 bg-green-600 rounded-full w-fit mx-auto mb-4">
                 <Mail className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Email Support</h3>
               <p className="text-2xl font-bold text-green-400 mb-2">info@chhif.org</p>
-              <p className="text-slate-300 text-sm">Detailed case submissions</p>
+              <p className="text-gray-300 text-sm">Detailed case submissions</p>
             </div>
             
-            <div className="text-center p-6 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
+            <div className="text-center p-6 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
               <div className="p-3 bg-pink-600 rounded-full w-fit mx-auto mb-4">
                 <Instagram className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Follow Us</h3>
               <p className="text-2xl font-bold text-pink-400 mb-2">@chhifngo</p>
-              <p className="text-slate-300 text-sm">Stay updated with latest news</p>
+              <p className="text-gray-300 text-sm">Stay updated with latest news</p>
             </div>
           </div>
 
-          <div className="text-center bg-slate-800 rounded-lg p-12">
+          <div className="text-center bg-gray-800 rounded-lg p-12">
             <h3 className="text-2xl font-bold mb-4">Join Our Mission</h3>
-            <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
               Together, we can build a safer digital world. Whether you're seeking help or want to contribute to our cause.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
