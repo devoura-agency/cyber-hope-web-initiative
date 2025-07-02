@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,11 @@ import Members from "./pages/Members";
 import PremiumMembership from "./pages/PremiumMembership";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
+import Donation from "./pages/Donation";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
+import CancellationRefund from "./pages/CancellationRefund";
+import ShippingDelivery from "./pages/ShippingDelivery";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +40,11 @@ const App = () => (
           <Route path="/news" element={<NewsWeekly />} />
           <Route path="/join" element={<JoinUs />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/donation" element={<Donation />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/cancellation-refund" element={<CancellationRefund />} />
+          <Route path="/shipping-delivery" element={<ShippingDelivery />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
