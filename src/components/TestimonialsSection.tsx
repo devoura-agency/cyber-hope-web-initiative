@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquareQuote, Play } from 'lucide-react';
+import { MessageSquareQuote } from 'lucide-react';
 
 interface Testimonial {
   id: string;
@@ -38,14 +38,10 @@ const TestimonialsSection = () => {
     }
   };
 
-  const getYouTubeVideoId = (url: string) => {
+  const getYouTubeEmbedId = (url: string) => {
     const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
-  };
-
-  const openYouTubeVideo = (url: string) => {
-    window.open(url, '_blank');
   };
 
   if (loading) {
@@ -78,33 +74,26 @@ const TestimonialsSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {testimonials.map((testimonial) => {
-            const videoId = getYouTubeVideoId(testimonial.youtubeUrl);
-            const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+            const videoId = getYouTubeEmbedId(testimonial.youtubeUrl);
 
             return (
               <Card key={testimonial.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="relative mb-4">
-                    {thumbnailUrl ? (
-                      <div 
-                        className="relative cursor-pointer group"
-                        onClick={() => openYouTubeVideo(testimonial.youtubeUrl)}
-                      >
-                        <img
-                          src={thumbnailUrl}
-                          alt={`${testimonial.personName} testimonial`}
-                          className="w-full h-48 object-cover rounded-lg"
+                    {videoId ? (
+                      <div className="relative w-full h-48">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${videoId}`}
+                          title={`${testimonial.personName} testimonial`}
+                          className="w-full h-full rounded-lg"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg group-hover:bg-opacity-50 transition-all">
-                          <Play className="h-12 w-12 text-white" />
-                        </div>
                       </div>
                     ) : (
-                      <div 
-                        className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
-                        onClick={() => openYouTubeVideo(testimonial.youtubeUrl)}
-                      >
-                        <Play className="h-12 w-12 text-gray-500" />
+                      <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <p className="text-gray-500">Invalid video URL</p>
                       </div>
                     )}
                   </div>

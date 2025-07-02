@@ -35,7 +35,6 @@ interface FormData {
   pincode: string;
   password: string;
   confirmPassword: string;
-  referralCode: string;
   image: FileList | null;
 }
 
@@ -45,31 +44,6 @@ const JoinUs = () => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
 
   const supportingAmount = watch('supportingAmount');
-
-  const validateReferralCode = async (referralCode: string) => {
-    if (!referralCode) return true; // Optional field
-    
-    const membersRef = collection(db, 'members');
-    const q = query(membersRef, where('uid', '==', referralCode));
-    const querySnapshot = await getDocs(q);
-    
-    return !querySnapshot.empty;
-  };
-
-  const updateReferralCount = async (referralCode: string) => {
-    if (!referralCode) return;
-    
-    const membersRef = collection(db, 'members');
-    const q = query(membersRef, where('uid', '==', referralCode));
-    const querySnapshot = await getDocs(q);
-    
-    if (!querySnapshot.empty) {
-      const memberDoc = querySnapshot.docs[0];
-      await updateDoc(doc(db, 'members', memberDoc.id), {
-        referralCount: increment(1)
-      });
-    }
-  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -84,19 +58,6 @@ const JoinUs = () => {
         return;
       }
 
-      // Validate referral code if provided
-      if (data.referralCode) {
-        const isValidReferral = await validateReferralCode(data.referralCode);
-        if (!isValidReferral) {
-          toast({
-            title: "Error",
-            description: "Invalid referral code",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-
       // Submit application
       await addDoc(collection(db, 'applications'), {
         ...data,
@@ -104,11 +65,6 @@ const JoinUs = () => {
         status: 'pending',
         createdAt: new Date().toISOString(),
       });
-
-      // Update referral count if valid referral code provided
-      if (data.referralCode) {
-        await updateReferralCount(data.referralCode);
-      }
 
       toast({
         title: "Application Submitted!",
@@ -257,23 +213,6 @@ const JoinUs = () => {
                       {...register('email', { required: 'Email is required' })}
                     />
                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-                  </div>
-                </div>
-
-                {/* Referral Code */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Referral Information</h3>
-                  
-                  <div>
-                    <Label htmlFor="referralCode">Referral Code (Optional)</Label>
-                    <Input
-                      id="referralCode"
-                      {...register('referralCode')}
-                      placeholder="Enter existing member's UID (e.g., 0001)"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Enter the UID of an existing member who referred you (optional)
-                    </p>
                   </div>
                 </div>
 

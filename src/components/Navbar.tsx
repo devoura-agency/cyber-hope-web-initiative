@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Shield } from 'lucide-react';
@@ -12,6 +11,8 @@ const Navbar = () => {
     { name: 'About Us', href: '/about' },
     { name: 'Resources', href: '/resources' },
     { name: 'Gallery', href: '/gallery' },
+    { name: 'Our Members', href: '/members' },
+    { name: 'Cyber Security Education', href: '/cyber-security-education' },
     { name: 'Contact Us', href: '/contact' },
     { name: 'Cyber Help Weekly', href: '/news' },
     { name: 'Join Us', href: '/premium-membership' },
