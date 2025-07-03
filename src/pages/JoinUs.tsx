@@ -37,6 +37,7 @@ interface FormData {
   password: string;
   confirmPassword: string;
   imageUrl?: string;
+  referralCode?: string;
   image?: FileList | null;
 }
 
@@ -70,13 +71,15 @@ const JoinUs = () => {
 
       // Handle referral logic
       let referredBy = null;
-      if (referralCode) {
-        const referrerQuery = query(collection(db, 'members'), where('memberId', '==', referralCode));
+      const finalReferralCode = data.referralCode || referralCode;
+      
+      if (finalReferralCode) {
+        const referrerQuery = query(collection(db, 'members'), where('memberId', '==', finalReferralCode));
         const referrerSnapshot = await getDocs(referrerQuery);
         
         if (!referrerSnapshot.empty) {
           const referrerDoc = referrerSnapshot.docs[0];
-          referredBy = referralCode;
+          referredBy = finalReferralCode;
           
           // Increment referral count for the referrer
           await updateDoc(doc(db, 'members', referrerDoc.id), {
@@ -85,8 +88,8 @@ const JoinUs = () => {
         }
       }
 
-      // Submit member data to joinedMembers collection
-      await addDoc(collection(db, 'joinedMembers'), {
+      // Prepare data for submission (exclude FileList)
+      const submitData = {
         ...data,
         memberId: newMemberId,
         referredBy: referredBy,
@@ -94,7 +97,13 @@ const JoinUs = () => {
         supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
         status: 'pending',
         createdAt: new Date().toISOString(),
-      });
+      };
+
+      // Remove the FileList object before submission
+      delete submitData.image;
+
+      // Submit member data to joinedMembers collection
+      await addDoc(collection(db, 'joinedMembers'), submitData);
 
       toast({
         title: "Registration Successful!",
@@ -150,6 +159,24 @@ const JoinUs = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Referral Code */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Referral Information</h3>
+                  
+                  <div>
+                    <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+                    <Input
+                      id="referralCode"
+                      placeholder="Enter referral code if you have one"
+                      defaultValue={referralCode || ''}
+                      {...register('referralCode')}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      If someone referred you to join, enter their member ID here
+                    </p>
+                  </div>
+                </div>
+
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
@@ -522,7 +549,7 @@ const JoinUs = () => {
                         className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                       />
                       <p className="text-sm text-gray-500 mt-1">
-                        Upload a profile image from your device
+                        Upload a profile image from your device (Note: File will not be stored, please use Image URL instead)
                       </p>
                     </div>
                   </div>
