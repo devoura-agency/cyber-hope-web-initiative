@@ -1,85 +1,112 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { collection, addDoc, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Upload } from 'lucide-react';
 
 interface MemberFormData {
+  title: string;
   name: string;
-  qualification: string;
-  designation: string;
-  location: string;
-  reference: string;
-  joiningDate: string;
-  contributions: string;
-  certificates: string;
-  profileImageUrl: string;
+  gender: string;
+  mobile: string;
+  whatsapp: string;
+  dob: string;
+  email: string;
+  parentName: string;
+  parentMobile: string;
+  maritalStatus: string;
+  address: string;
+  country: string;
+  state: string;
+  district: string;
+  committee: string;
+  subCommittee: string;
+  supportingAmount: string;
+  customAmount: string;
+  pincode: string;
+  password: string;
+  confirmPassword: string;
+  imageUrl: string;
+  referralCode: string;
 }
 
 const MemberForm = () => {
-  const [loading, setLoading] = useState(false);
-  const [nextUID, setNextUID] = useState('0001');
   const { toast } = useToast();
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<MemberFormData>();
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<MemberFormData>();
 
-  useEffect(() => {
-    fetchNextUID();
-  }, []);
-
-  const fetchNextUID = async () => {
-    try {
-      const membersRef = collection(db, 'members');
-      const q = query(membersRef, orderBy('uid', 'desc'), limit(1));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        const lastMember = querySnapshot.docs[0].data();
-        const lastUID = parseInt(lastMember.uid);
-        const newUID = (lastUID + 1).toString().padStart(4, '0');
-        setNextUID(newUID);
-      }
-    } catch (error) {
-      console.error('Error fetching next UID:', error);
-    }
-  };
+  const supportingAmount = watch('supportingAmount');
 
   const onSubmit = async (data: MemberFormData) => {
     try {
       setLoading(true);
       
+      if (data.password !== data.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "Passwords do not match",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Generate unique member ID
+      const membersRef = collection(db, 'members');
+      const snapshot = await getDocs(membersRef);
+      const memberCount = snapshot.size;
+      const newMemberId = String(memberCount + 1).padStart(4, '0');
+
+      // Handle referral logic
+      let referredBy = null;
+      if (data.referralCode) {
+        const referrerQuery = query(membersRef, where('memberId', '==', data.referralCode));
+        const referrerSnapshot = await getDocs(referrerQuery);
+        
+        if (!referrerSnapshot.empty) {
+          const referrerDoc = referrerSnapshot.docs[0];
+          referredBy = data.referralCode;
+          
+          // Increment referral count for the referrer
+          await updateDoc(doc(db, 'members', referrerDoc.id), {
+            referralCount: increment(1)
+          });
+        } else {
+          toast({
+            title: "Warning",
+            description: "Referral code not found, member will be added without referral",
+            variant: "destructive"
+          });
+        }
+      }
+
+      // Submit member data
       await addDoc(collection(db, 'members'), {
-        uid: nextUID,
-        name: data.name,
-        qualification: data.qualification,
-        designation: data.designation,
-        location: data.location,
-        reference: data.reference,
-        joiningDate: data.joiningDate,
-        contributions: data.contributions,
-        certificates: data.certificates,
-        profileImage: data.profileImageUrl,
+        ...data,
+        memberId: newMemberId,
+        referredBy: referredBy,
         referralCount: 0,
+        supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
+        status: 'active',
         createdAt: new Date().toISOString(),
       });
 
       toast({
-        title: "Success!",
-        description: `Member added successfully with UID: ${nextUID}`,
+        title: "Success",
+        description: `Member added successfully! Member ID: ${newMemberId}`,
       });
-      
+
       reset();
-      fetchNextUID();
+
     } catch (error) {
       console.error('Error adding member:', error);
       toast({
         title: "Error",
-        description: "Failed to add member",
+        description: "Failed to add member. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -87,15 +114,38 @@ const MemberForm = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <p className="text-blue-800 font-medium">Next Member UID: {nextUID}</p>
-      </div>
+  const supportingAmounts = [
+    { value: '500', label: '₹500' },
+    { value: '1000', label: '₹1,000' },
+    { value: '2000', label: '₹2,000' },
+    { value: '5000', label: '₹5,000' },
+    { value: 'custom', label: 'Custom Amount' }
+  ];
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Personal Information */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
+            <Label htmlFor="title">Title *</Label>
+            <Select {...register('title', { required: 'Title is required' })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select title" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mr">Mr.</SelectItem>
+                <SelectItem value="mrs">Mrs.</SelectItem>
+                <SelectItem value="ms">Ms.</SelectItem>
+                <SelectItem value="dr">Dr.</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+          </div>
+          
+          <div className="md:col-span-2">
             <Label htmlFor="name">Full Name *</Label>
             <Input
               id="name"
@@ -103,99 +153,227 @@ const MemberForm = () => {
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </div>
-
-          <div>
-            <Label htmlFor="qualification">Qualification *</Label>
-            <Input
-              id="qualification"
-              {...register('qualification', { required: 'Qualification is required' })}
-            />
-            {errors.qualification && <p className="text-red-500 text-sm mt-1">{errors.qualification.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="designation">Designation *</Label>
-            <Input
-              id="designation"
-              {...register('designation', { required: 'Designation is required' })}
-            />
-            {errors.designation && <p className="text-red-500 text-sm mt-1">{errors.designation.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="location">Location *</Label>
-            <Input
-              id="location"
-              {...register('location', { required: 'Location is required' })}
-            />
-            {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="reference">Reference</Label>
-            <Input
-              id="reference"
-              {...register('reference')}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="joiningDate">Joining Date *</Label>
-            <Input
-              id="joiningDate"
-              type="date"
-              {...register('joiningDate', { required: 'Joining date is required' })}
-            />
-            {errors.joiningDate && <p className="text-red-500 text-sm mt-1">{errors.joiningDate.message}</p>}
-          </div>
         </div>
 
         <div>
-          <Label htmlFor="contributions">Contributions</Label>
-          <Textarea
-            id="contributions"
-            {...register('contributions')}
-            placeholder="Activities participated in, achievements, etc."
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="certificates">Certificates</Label>
-          <Textarea
-            id="certificates"
-            {...register('certificates')}
-            placeholder="List of certificates earned"
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="profileImageUrl">Profile Image URL *</Label>
+          <Label htmlFor="gender">Gender *</Label>
           <Input
-            id="profileImageUrl"
-            type="url"
-            {...register('profileImageUrl', { required: 'Profile image URL is required' })}
-            placeholder="https://example.com/image.jpg"
+            id="gender"
+            type="text"
+            {...register('gender', { required: 'Gender is required' })}
           />
-          {errors.profileImageUrl && <p className="text-red-500 text-sm mt-1">{errors.profileImageUrl.message}</p>}
+          {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? (
-            <>
-              <Upload className="mr-2 h-4 w-4 animate-spin" />
-              Adding Member...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Add Member
-            </>
-          )}
+        <div>
+          <Label htmlFor="mobile">Mobile *</Label>
+          <Input
+            id="mobile"
+            type="tel"
+            {...register('mobile', { required: 'Mobile is required' })}
+          />
+          {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile.message}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="whatsapp">WhatsApp</Label>
+          <Input
+            id="whatsapp"
+            type="tel"
+            {...register('whatsapp')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="dob">Date of Birth *</Label>
+          <Input
+            id="dob"
+            type="date"
+            {...register('dob', { required: 'Date of Birth is required' })}
+          />
+          {errors.dob && <p className="text-red-500 text-sm mt-1">{errors.dob.message}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            {...register('email')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="parentName">Parent's Name</Label>
+          <Input
+            id="parentName"
+            type="text"
+            {...register('parentName')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="parentMobile">Parent's Mobile</Label>
+          <Input
+            id="parentMobile"
+            type="tel"
+            {...register('parentMobile')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="maritalStatus">Marital Status</Label>
+          <Input
+            id="maritalStatus"
+            type="text"
+            {...register('maritalStatus')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="address">Address</Label>
+          <Input
+            id="address"
+            type="text"
+            {...register('address')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="country">Country</Label>
+          <Input
+            id="country"
+            type="text"
+            {...register('country')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="state">State</Label>
+          <Input
+            id="state"
+            type="text"
+            {...register('state')}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="district">District</Label>
+          <Input
+            id="district"
+            type="text"
+            {...register('district')}
+          />
+        </div>
+      </div>
+
+      {/* Referral Information */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Referral Information</h3>
+        
+        <div>
+          <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+          <Input
+            id="referralCode"
+            placeholder="Enter referral member ID (e.g., 0010)"
+            {...register('referralCode')}
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            If this member was referred by another member, enter their member ID here
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="committee">Committee</Label>
+        <Input
+          id="committee"
+          type="text"
+          {...register('committee')}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="subCommittee">Sub-Committee</Label>
+        <Input
+          id="subCommittee"
+          type="text"
+          {...register('subCommittee')}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="supportingAmount">Supporting Amount *</Label>
+        <Select {...register('supportingAmount', { required: 'Supporting amount is required' })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select supporting amount" />
+          </SelectTrigger>
+          <SelectContent>
+            {supportingAmounts.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.supportingAmount && <p className="text-red-500 text-sm mt-1">{errors.supportingAmount.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="customAmount">Custom Amount</Label>
+        <Input
+          id="customAmount"
+          type="text"
+          {...register('customAmount')}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="pincode">Pincode</Label>
+        <Input
+          id="pincode"
+          type="text"
+          {...register('pincode')}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="password">Password *</Label>
+        <Input
+          id="password"
+          type="password"
+          {...register('password', { required: 'Password is required' })}
+        />
+        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="confirmPassword">Confirm Password *</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          {...register('confirmPassword', { required: 'Confirm password is required' })}
+        />
+        {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="imageUrl">Profile Image URL *</Label>
+        <Input
+          id="imageUrl"
+          type="url"
+          {...register('imageUrl', { required: 'Profile image URL is required' })}
+          placeholder="https://example.com/image.jpg"
+        />
+        {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl.message}</p>}
+      </div>
+
+      <div className="text-center pt-6">
+        <Button type="submit" size="lg" className="px-12" disabled={loading}>
+          {loading ? 'Adding Member...' : 'Add Member'}
         </Button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 };
 

@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Link } from 'react-router-dom';
-import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram, Calendar, MapPin, Eye, Gift } from 'lucide-react';
+import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram, Calendar, MapPin, Eye, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TestimonialsSection from '@/components/TestimonialsSection';
@@ -56,51 +58,128 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Hero Section */}
+      {/* Enhanced Hero Section with Carousel */}
       <section className="relative bg-gradient-to-r from-gray-900 to-blue-900 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-6xl mx-auto px-6 py-24">
-          <div className="flex items-center justify-center mb-8">
-            <img 
-              src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
-              alt="CHHIF Logo" 
-              className="h-16 w-16 rounded-full border-2 border-blue-400 mr-4"
-            />
+        <div className="relative max-w-7xl mx-auto px-6 py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Content */}
             <div>
-              <h1 className="text-xl font-bold">Cyber Hope Help Initiative Foundation</h1>
-              <p className="text-blue-300 text-sm">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
+              <div className="flex items-center mb-8">
+                <img 
+                  src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
+                  alt="CHHIF Logo" 
+                  className="h-16 w-16 rounded-full border-2 border-blue-400 mr-4"
+                />
+                <div>
+                  <h1 className="text-xl font-bold">Cyber Hope Help Initiative Foundation</h1>
+                  <p className="text-blue-300 text-sm">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
+                </div>
+              </div>
+              
+              <h2 className="text-5xl font-bold mb-6 leading-tight">
+                Securing Digital
+                <span className="text-blue-400 block">Communities</span>
+              </h2>
+              
+              <p className="text-xl text-gray-300 mb-10">
+                Empowering individuals through cybersecurity education, legal support, and victim assistance in the digital age.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+                  <Link to="/donation">
+                    <Gift className="mr-2 h-5 w-5" />
+                    Donate Now
+                  </Link>
+                </Button>
+                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Link to="/gallery">
+                    <Eye className="mr-2 h-5 w-5" />
+                    Activities
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black">
+                  <Link to="/premium-membership">
+                    <Users className="mr-2 h-5 w-5" />
+                    Join Us
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
-          
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-5xl font-bold mb-6 leading-tight">
-              Securing Digital
-              <span className="text-blue-400 block">Communities</span>
-            </h2>
-            
-            <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-              Empowering individuals through cybersecurity education, legal support, and victim assistance in the digital age.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
-                <Link to="/donation">
-                  <Gift className="mr-2 h-5 w-5" />
-                  Donate Now
-                </Link>
-              </Button>
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                <Link to="/gallery">
-                  <Eye className="mr-2 h-5 w-5" />
-                  Activities
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black">
-                <Link to="/join">
-                  <Users className="mr-2 h-5 w-5" />
-                  Join Us
-                </Link>
-              </Button>
+
+            {/* Right Side - Activities Carousel */}
+            <div className="relative">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-white">Recent Activities</h3>
+                  <div className="flex items-center text-green-400">
+                    <span className="text-sm mr-2">Impact Increased</span>
+                    <span className="text-xl font-bold">+156%</span>
+                  </div>
+                </div>
+                
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+                    <p className="mt-4 text-blue-200">Loading activities...</p>
+                  </div>
+                ) : recentActivities.length > 0 ? (
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {recentActivities.map((activity) => (
+                        <CarouselItem key={activity.id}>
+                          <Card className="bg-white/20 border-white/30 text-white">
+                            <div className="relative">
+                              <img
+                                src={activity.images[0]}
+                                alt={activity.title}
+                                className="w-full h-48 object-cover rounded-t-lg"
+                              />
+                              <div className="absolute top-4 left-4">
+                                <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+                                  {activity.tag}
+                                </span>
+                              </div>
+                            </div>
+                            <CardContent className="p-4">
+                              <h4 className="font-semibold text-lg mb-2 line-clamp-2">{activity.title}</h4>
+                              <p className="text-gray-200 text-sm mb-3 line-clamp-2">{activity.description}</p>
+                              
+                              <div className="space-y-1 text-xs text-gray-300 mb-4">
+                                <div className="flex items-center">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  <span>{new Date(activity.date).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  <span>{activity.location}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Users className="h-3 w-3 mr-1" />
+                                  <span>{activity.participants} participants</span>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-2 bg-white/20 border-white/30 text-white hover:bg-white/30" />
+                    <CarouselNext className="right-2 bg-white/20 border-white/30 text-white hover:bg-white/30" />
+                  </Carousel>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-blue-200">No activities to display</p>
+                  </div>
+                )}
+                
+                <div className="mt-4 text-center">
+                  <Button asChild variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white">
+                    <Link to="/gallery">View All Activities</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -126,69 +205,22 @@ const Index = () => {
       {/* Testimonials Section */}
       <TestimonialsSection />
 
-      {/* Recent Activities Section */}
+      {/* Recent Activities Section - Simplified since we have carousel in hero */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Recent Activities</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Impact</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              See our latest initiatives and impact in creating safer digital communities
+              See our comprehensive initiatives in creating safer digital communities
             </p>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading activities...</p>
+            <div className="mt-8">
+              <Button asChild variant="outline" size="lg">
+                <Link to="/gallery">
+                  <Eye className="mr-2 h-5 w-5" />
+                  View Complete Gallery
+                </Link>
+              </Button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {recentActivities.map((activity) => (
-                <Card key={activity.id} className="hover:shadow-lg transition-shadow">
-                  <div className="relative">
-                    <img
-                      src={activity.images[0]}
-                      alt={activity.title}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
-                        {activity.tag}
-                      </span>
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg line-clamp-2">{activity.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">{activity.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(activity.date).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{activity.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Users className="h-4 w-4" />
-                        <span>{activity.participants} participants</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          <div className="text-center mt-12">
-            <Button asChild variant="outline" size="lg">
-              <Link to="/gallery">
-                <Eye className="mr-2 h-5 w-5" />
-                View All Activities
-              </Link>
-            </Button>
           </div>
         </div>
       </section>

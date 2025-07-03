@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar, Upload, User, Phone, Mail, MapPin, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +42,8 @@ interface FormData {
 const JoinUs = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref');
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
 
   const supportingAmount = watch('supportingAmount');
@@ -58,24 +61,50 @@ const JoinUs = () => {
         return;
       }
 
-      // Submit application
-      await addDoc(collection(db, 'applications'), {
+      // Generate unique member ID
+      const membersRef = collection(db, 'members');
+      const snapshot = await getDocs(membersRef);
+      const memberCount = snapshot.size;
+      const newMemberId = String(memberCount + 1).padStart(4, '0');
+
+      // Handle referral logic
+      let referredBy = null;
+      if (referralCode) {
+        const referrerQuery = query(membersRef, where('memberId', '==', referralCode));
+        const referrerSnapshot = await getDocs(referrerQuery);
+        
+        if (!referrerSnapshot.empty) {
+          const referrerDoc = referrerSnapshot.docs[0];
+          referredBy = referralCode;
+          
+          // Increment referral count for the referrer
+          await updateDoc(doc(db, 'members', referrerDoc.id), {
+            referralCount: increment(1)
+          });
+        }
+      }
+
+      // Submit member data
+      await addDoc(collection(db, 'members'), {
         ...data,
+        memberId: newMemberId,
+        referredBy: referredBy,
+        referralCount: 0,
         supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
-        status: 'pending',
+        status: 'active',
         createdAt: new Date().toISOString(),
       });
 
       toast({
-        title: "Application Submitted!",
-        description: "Your membership application has been submitted successfully. We will review and contact you soon.",
+        title: "Registration Successful!",
+        description: `Welcome! Your member ID is ${newMemberId}. Please save this for future reference.`,
       });
 
     } catch (error) {
-      console.error('Error submitting application:', error);
+      console.error('Error registering member:', error);
       toast({
         title: "Error",
-        description: "Failed to submit application. Please try again.",
+        description: "Failed to register. Please try again.",
         variant: "destructive"
       });
     } finally {
