@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { collection, addDoc, getDocs, query, where, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ interface MemberFormData {
 const MemberForm = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, watch, reset, control, formState: { errors } } = useForm<MemberFormData>();
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<MemberFormData>();
 
   const supportingAmount = watch('supportingAmount');
 
@@ -131,24 +131,17 @@ const MemberForm = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="title">Title *</Label>
-            <Controller
-              name="title"
-              control={control}
-              rules={{ required: 'Title is required' }}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select title" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mr">Mr.</SelectItem>
-                    <SelectItem value="mrs">Mrs.</SelectItem>
-                    <SelectItem value="ms">Ms.</SelectItem>
-                    <SelectItem value="dr">Dr.</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <Select {...register('title', { required: 'Title is required' })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select title" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mr">Mr.</SelectItem>
+                <SelectItem value="mrs">Mrs.</SelectItem>
+                <SelectItem value="ms">Ms.</SelectItem>
+                <SelectItem value="dr">Dr.</SelectItem>
+              </SelectContent>
+            </Select>
             {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
           </div>
           
@@ -164,22 +157,10 @@ const MemberForm = () => {
 
         <div>
           <Label htmlFor="gender">Gender *</Label>
-          <Controller
-            name="gender"
-            control={control}
-            rules={{ required: 'Gender is required' }}
-            render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
+          <Input
+            id="gender"
+            type="text"
+            {...register('gender', { required: 'Gender is required' })}
           />
           {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
         </div>
@@ -323,25 +304,18 @@ const MemberForm = () => {
 
       <div>
         <Label htmlFor="supportingAmount">Supporting Amount *</Label>
-        <Controller
-          name="supportingAmount"
-          control={control}
-          rules={{ required: 'Supporting amount is required' }}
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select supporting amount" />
-              </SelectTrigger>
-              <SelectContent>
-                {supportingAmounts.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
+        <Select {...register('supportingAmount', { required: 'Supporting amount is required' })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select supporting amount" />
+          </SelectTrigger>
+          <SelectContent>
+            {supportingAmounts.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {errors.supportingAmount && <p className="text-red-500 text-sm mt-1">{errors.supportingAmount.message}</p>}
       </div>
 
