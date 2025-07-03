@@ -8,10 +8,10 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and Description */}
-          <div className="col-span-1 md:col-span-2">
+          <div className="col-span-1 md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <Shield className="h-8 w-8 text-blue-400" />
-              <span className="font-bold text-xl">Cyber Hope Help Initiative Foundation</span>
+              <span className="font-bold text-xl">CHHIF</span>
             </div>
             <p className="text-gray-300 mb-4">
               Dedicated to supporting victims of cybercrime and creating awareness about cyber security.
@@ -48,6 +48,19 @@ const Footer = () => {
               <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link></li>
               <li><Link to="/news" className="text-gray-300 hover:text-white transition-colors">Weekly Edition</Link></li>
               <li><Link to="/join" className="text-gray-300 hover:text-white transition-colors">Join Us</Link></li>
+              <li><Link to="/members" className="text-gray-300 hover:text-white transition-colors">Members</Link></li>
+              <li><Link to="/donation" className="text-gray-300 hover:text-white transition-colors">Donate</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal & Policies */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4">Legal & Policies</h3>
+            <ul className="space-y-2">
+              <li><Link to="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-conditions" className="text-gray-300 hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/cancellation-refund" className="text-gray-300 hover:text-white transition-colors">Cancellation & Refund</Link></li>
+              <li><Link to="/shipping-delivery" className="text-gray-300 hover:text-white transition-colors">Shipping & Delivery</Link></li>
             </ul>
           </div>
 

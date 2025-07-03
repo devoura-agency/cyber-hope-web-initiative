@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useSearchParams } from 'react-router-dom';
@@ -36,7 +36,8 @@ interface FormData {
   pincode: string;
   password: string;
   confirmPassword: string;
-  image: FileList | null;
+  imageUrl?: string;
+  image?: FileList | null;
 }
 
 const JoinUs = () => {
@@ -44,7 +45,7 @@ const JoinUs = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref');
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
+  const { register, handleSubmit, watch, control, formState: { errors } } = useForm<FormData>();
 
   const supportingAmount = watch('supportingAmount');
 
@@ -62,7 +63,7 @@ const JoinUs = () => {
       }
 
       // Generate unique member ID
-      const membersRef = collection(db, 'members');
+      const membersRef = collection(db, 'joinedMembers');
       const snapshot = await getDocs(membersRef);
       const memberCount = snapshot.size;
       const newMemberId = String(memberCount + 1).padStart(4, '0');
@@ -70,7 +71,7 @@ const JoinUs = () => {
       // Handle referral logic
       let referredBy = null;
       if (referralCode) {
-        const referrerQuery = query(membersRef, where('memberId', '==', referralCode));
+        const referrerQuery = query(collection(db, 'members'), where('memberId', '==', referralCode));
         const referrerSnapshot = await getDocs(referrerQuery);
         
         if (!referrerSnapshot.empty) {
@@ -84,20 +85,20 @@ const JoinUs = () => {
         }
       }
 
-      // Submit member data
-      await addDoc(collection(db, 'members'), {
+      // Submit member data to joinedMembers collection
+      await addDoc(collection(db, 'joinedMembers'), {
         ...data,
         memberId: newMemberId,
         referredBy: referredBy,
         referralCount: 0,
         supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
-        status: 'active',
+        status: 'pending',
         createdAt: new Date().toISOString(),
       });
 
       toast({
         title: "Registration Successful!",
-        description: `Welcome! Your member ID is ${newMemberId}. Please save this for future reference.`,
+        description: `Welcome! Your application ID is ${newMemberId}. Please save this for future reference. Your application is under review.`,
       });
 
     } catch (error) {
@@ -156,17 +157,24 @@ const JoinUs = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="title">Title *</Label>
-                      <Select {...register('title', { required: 'Title is required' })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select title" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mr">Mr.</SelectItem>
-                          <SelectItem value="mrs">Mrs.</SelectItem>
-                          <SelectItem value="ms">Ms.</SelectItem>
-                          <SelectItem value="dr">Dr.</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="title"
+                        control={control}
+                        rules={{ required: 'Title is required' }}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select title" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="mr">Mr.</SelectItem>
+                              <SelectItem value="mrs">Mrs.</SelectItem>
+                              <SelectItem value="ms">Ms.</SelectItem>
+                              <SelectItem value="dr">Dr.</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
                     </div>
                     
@@ -183,16 +191,23 @@ const JoinUs = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="gender">Gender *</Label>
-                      <Select {...register('gender', { required: 'Gender is required' })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="gender"
+                        control={control}
+                        rules={{ required: 'Gender is required' }}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
                     </div>
 
@@ -272,17 +287,24 @@ const JoinUs = () => {
 
                   <div>
                     <Label htmlFor="maritalStatus">Marital Status *</Label>
-                    <Select {...register('maritalStatus', { required: 'Marital status is required' })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select marital status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="single">Single</SelectItem>
-                        <SelectItem value="married">Married</SelectItem>
-                        <SelectItem value="divorced">Divorced</SelectItem>
-                        <SelectItem value="widowed">Widowed</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="maritalStatus"
+                      control={control}
+                      rules={{ required: 'Marital status is required' }}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select marital status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="single">Single</SelectItem>
+                            <SelectItem value="married">Married</SelectItem>
+                            <SelectItem value="divorced">Divorced</SelectItem>
+                            <SelectItem value="widowed">Widowed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     {errors.maritalStatus && <p className="text-red-500 text-sm mt-1">{errors.maritalStatus.message}</p>}
                   </div>
                 </div>
@@ -348,33 +370,46 @@ const JoinUs = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="committee">Committee *</Label>
-                      <Select {...register('committee', { required: 'Committee is required' })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select committee" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="legal">Legal Aid Committee</SelectItem>
-                          <SelectItem value="awareness">Awareness Committee</SelectItem>
-                          <SelectItem value="research">Research Committee</SelectItem>
-                          <SelectItem value="community">Community Outreach</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="committee"
+                        control={control}
+                        rules={{ required: 'Committee is required' }}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select committee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="legal">Legal Aid Committee</SelectItem>
+                              <SelectItem value="awareness">Awareness Committee</SelectItem>
+                              <SelectItem value="research">Research Committee</SelectItem>
+                              <SelectItem value="community">Community Outreach</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {errors.committee && <p className="text-red-500 text-sm mt-1">{errors.committee.message}</p>}
                     </div>
 
                     <div>
                       <Label htmlFor="subCommittee">Sub Committee</Label>
-                      <Select {...register('subCommittee')}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sub committee" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cybercrime">Cybercrime Support</SelectItem>
-                          <SelectItem value="education">Education & Training</SelectItem>
-                          <SelectItem value="media">Media & Communication</SelectItem>
-                          <SelectItem value="technology">Technology Development</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="subCommittee"
+                        control={control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select sub committee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cybercrime">Cybercrime Support</SelectItem>
+                              <SelectItem value="education">Education & Training</SelectItem>
+                              <SelectItem value="media">Media & Communication</SelectItem>
+                              <SelectItem value="technology">Technology Development</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                     </div>
                   </div>
                 </div>
@@ -391,7 +426,6 @@ const JoinUs = () => {
                           type="button"
                           variant={supportingAmount === amount.value ? "default" : "outline"}
                           onClick={() => {
-                            // Manually trigger the change event for react-hook-form
                             const event = { target: { name: 'supportingAmount', value: amount.value } };
                             register('supportingAmount').onChange(event);
                           }}
@@ -458,19 +492,39 @@ const JoinUs = () => {
                   </div>
                 </div>
 
-                {/* Image Upload */}
+                {/* Profile Image */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Profile Image</h3>
                   
-                  <div>
-                    <Label htmlFor="image">Upload Image</Label>
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      {...register('image')}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="imageUrl">Image URL (Optional)</Label>
+                      <Input
+                        id="imageUrl"
+                        type="url"
+                        placeholder="https://example.com/your-image.jpg"
+                        {...register('imageUrl')}
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Enter a direct link to your profile image
+                      </p>
+                    </div>
+                    
+                    <div className="text-center text-gray-500">OR</div>
+                    
+                    <div>
+                      <Label htmlFor="image">Upload Image (Optional)</Label>
+                      <Input
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        {...register('image')}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Upload a profile image from your device
+                      </p>
+                    </div>
                   </div>
                 </div>
 

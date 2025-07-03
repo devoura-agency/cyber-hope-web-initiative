@@ -1,12 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Link } from 'react-router-dom';
-import { Shield, Users, Scale, Heart, ArrowRight, CheckCircle, Phone, Mail, Instagram, Calendar, MapPin, Eye, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Shield, Users, Heart, Target, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TestimonialsSection from '@/components/TestimonialsSection';
@@ -20,10 +19,12 @@ interface Activity {
   description: string;
   images: string[];
   tag: string;
+  createdAt: string;
 }
 
 const Index = () => {
-  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ const Index = () => {
         id: doc.id,
         ...doc.data()
       })) as Activity[];
-      setRecentActivities(activitiesData);
+      setActivities(activitiesData);
     } catch (error) {
       console.error('Error fetching activities:', error);
     } finally {
@@ -47,320 +48,179 @@ const Index = () => {
     }
   };
 
-  const stats = [
-    { number: "3000+", label: "Students Reached", icon: <Users className="h-6 w-6" /> },
-    { number: "50+", label: "Awareness Sessions", icon: <Shield className="h-6 w-6" /> },
-    { number: "100+", label: "Legal Cases Supported", icon: <Scale className="h-6 w-6" /> },
-    { number: "24/7", label: "Support Available", icon: <Heart className="h-6 w-6" /> }
-  ];
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % activities.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + activities.length) % activities.length);
+  };
+
+  useEffect(() => {
+    if (activities.length > 0) {
+      const timer = setInterval(nextSlide, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [activities.length]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
-      {/* Enhanced Hero Section with Carousel */}
-      <section className="relative bg-gradient-to-r from-gray-900 to-blue-900 text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-6 py-24">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Content */}
+            {/* Left Content */}
             <div>
-              <div className="flex items-center mb-8">
-                <img 
-                  src="/lovable-uploads/64adea60-ddb2-4f12-8d1b-a4789617b1cb.png" 
-                  alt="CHHIF Logo" 
-                  className="h-16 w-16 rounded-full border-2 border-blue-400 mr-4"
-                />
-                <div>
-                  <h1 className="text-xl font-bold">Cyber Hope Help Initiative Foundation</h1>
-                  <p className="text-blue-300 text-sm">RegNo: TS/2024/0397972 | 12A & 80G Certified</p>
-                </div>
+              <div className="flex items-center space-x-2 mb-6">
+                <Shield className="h-12 w-12 text-blue-200" />
+                <span className="font-bold text-2xl">CHHIF</span>
               </div>
-              
-              <h2 className="text-5xl font-bold mb-6 leading-tight">
-                Securing Digital
-                <span className="text-blue-400 block">Communities</span>
-              </h2>
-              
-              <p className="text-xl text-gray-300 mb-10">
-                Empowering individuals through cybersecurity education, legal support, and victim assistance in the digital age.
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                Creating a
+                <span className="text-blue-200 block">Safer Digital</span>
+                World Together
+              </h1>
+              <p className="text-xl text-blue-100 mb-8 leading-relaxed max-w-2xl">
+                Cyber Hope Help Initiative Foundation is dedicated to supporting victims of cybercrime 
+                and creating awareness about cyber security through comprehensive programs and community support.
               </p>
-              
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
-                  <Link to="/donation">
-                    <Gift className="mr-2 h-5 w-5" />
-                    Donate Now
-                  </Link>
+                <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-3 text-lg">
+                  Join Our Mission
                 </Button>
-                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  <Link to="/gallery">
-                    <Eye className="mr-2 h-5 w-5" />
-                    Activities
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black">
-                  <Link to="/premium-membership">
-                    <Users className="mr-2 h-5 w-5" />
-                    Join Us
-                  </Link>
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700 px-8 py-3 text-lg">
+                  Get Help Now
                 </Button>
               </div>
             </div>
 
-            {/* Right Side - Activities Carousel */}
+            {/* Right Carousel */}
             <div className="relative">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-white">Recent Activities</h3>
-                  <div className="flex items-center text-green-400">
-                    <span className="text-sm mr-2">Impact Increased</span>
-                    <span className="text-xl font-bold">+156%</span>
+              {loading ? (
+                <div className="bg-white/10 rounded-xl p-8 text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                  <p>Loading recent activities...</p>
+                </div>
+              ) : activities.length > 0 ? (
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden">
+                  <div className="relative h-80">
+                    <img
+                      src={activities[currentSlide]?.images[0]}
+                      alt={activities[currentSlide]?.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40"></div>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <Badge className="mb-2 bg-blue-600">
+                        {activities[currentSlide]?.tag}
+                      </Badge>
+                      <h3 className="text-xl font-bold mb-2 line-clamp-2">
+                        {activities[currentSlide]?.title}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-200">
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          <span>{new Date(activities[currentSlide]?.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          <span>{activities[currentSlide]?.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Navigation Buttons */}
+                  <button
+                    onClick={prevSlide}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-white" />
+                  </button>
+                  <button
+                    onClick={nextSlide}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors"
+                  >
+                    <ChevronRight className="h-5 w-5 text-white" />
+                  </button>
+
+                  {/* Dots Indicator */}
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                    {activities.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentSlide(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentSlide ? 'bg-white' : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
                   </div>
                 </div>
-                
-                {loading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
-                    <p className="mt-4 text-blue-200">Loading activities...</p>
-                  </div>
-                ) : recentActivities.length > 0 ? (
-                  <Carousel className="w-full">
-                    <CarouselContent>
-                      {recentActivities.map((activity) => (
-                        <CarouselItem key={activity.id}>
-                          <Card className="bg-white/20 border-white/30 text-white">
-                            <div className="relative">
-                              <img
-                                src={activity.images[0]}
-                                alt={activity.title}
-                                className="w-full h-48 object-cover rounded-t-lg"
-                              />
-                              <div className="absolute top-4 left-4">
-                                <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
-                                  {activity.tag}
-                                </span>
-                              </div>
-                            </div>
-                            <CardContent className="p-4">
-                              <h4 className="font-semibold text-lg mb-2 line-clamp-2">{activity.title}</h4>
-                              <p className="text-gray-200 text-sm mb-3 line-clamp-2">{activity.description}</p>
-                              
-                              <div className="space-y-1 text-xs text-gray-300 mb-4">
-                                <div className="flex items-center">
-                                  <Calendar className="h-3 w-3 mr-1" />
-                                  <span>{new Date(activity.date).toLocaleDateString()}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <MapPin className="h-3 w-3 mr-1" />
-                                  <span>{activity.location}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <Users className="h-3 w-3 mr-1" />
-                                  <span>{activity.participants} participants</span>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="left-2 bg-white/20 border-white/30 text-white hover:bg-white/30" />
-                    <CarouselNext className="right-2 bg-white/20 border-white/30 text-white hover:bg-white/30" />
-                  </Carousel>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-blue-200">No activities to display</p>
-                  </div>
-                )}
-                
-                <div className="mt-4 text-center">
-                  <Button asChild variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white">
-                    <Link to="/gallery">View All Activities</Link>
-                  </Button>
+              ) : (
+                <div className="bg-white/10 rounded-xl p-8 text-center">
+                  <p>No recent activities to display</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center p-6 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="flex justify-center text-blue-600 mb-4">
-                  {stat.icon}
+      {/* Mission Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Mission</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We are committed to building a safer digital environment through education, support, and advocacy
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-6">
+                  <Users className="h-8 w-8 text-blue-600" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-              </div>
-            ))}
+                <h3 className="text-xl font-semibold mb-4">Support Victims</h3>
+                <p className="text-gray-600">
+                  Providing comprehensive support and resources to cybercrime victims, helping them recover and rebuild their digital security.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-6">
+                  <Target className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Raise Awareness</h3>
+                <p className="text-gray-600">
+                  Educating communities about cyber threats, prevention strategies, and best practices for digital safety and security.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="bg-purple-100 rounded-full p-4 w-16 h-16 mx-auto mb-6">
+                  <Heart className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Build Community</h3>
+                <p className="text-gray-600">
+                  Creating a strong network of supporters, volunteers, and advocates working together for a safer digital world.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
       <TestimonialsSection />
-
-      {/* Recent Activities Section - Simplified since we have carousel in hero */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Impact</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              See our comprehensive initiatives in creating safer digital communities
-            </p>
-            <div className="mt-8">
-              <Button asChild variant="outline" size="lg">
-                <Link to="/gallery">
-                  <Eye className="mr-2 h-5 w-5" />
-                  View Complete Gallery
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Services</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Comprehensive support and education to build a safer digital ecosystem
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Cybersecurity Awareness</h3>
-              <p className="text-gray-600 mb-6">Educational programs and training sessions for digital safety across institutions and communities.</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Digital Safety Training
-                </div>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Institutional Programs
-                </div>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Community Workshops
-                </div>
-              </div>
-            </Card>
-
-            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Scale className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Legal Support</h3>
-              <p className="text-gray-600 mb-6">Professional legal aid and consultation for cybercrime victims with expert guidance.</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Legal Consultation
-                </div>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Case Support
-                </div>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Expert Guidance
-                </div>
-              </div>
-            </Card>
-
-            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Heart className="h-8 w-8 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Victim Assistance</h3>
-              <p className="text-gray-600 mb-6">24/7 support services for those affected by cybercrime, including mental health resources.</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  24/7 Support
-                </div>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Mental Health Care
-                </div>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Recovery Assistance
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact CTA Section */}
-      <section className="py-20 bg-gray-900 text-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Need Help? We're Here 24/7</h2>
-            <p className="text-xl text-gray-300">Don't face cybercrime alone - reach out to our expert team</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="text-center p-6 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
-              <div className="p-3 bg-blue-600 rounded-full w-fit mx-auto mb-4">
-                <Phone className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Emergency Helpline</h3>
-              <p className="text-2xl font-bold text-blue-400 mb-2">9849606691</p>
-              <p className="text-gray-300 text-sm">Available 24/7 for urgent cases</p>
-            </div>
-            
-            <div className="text-center p-6 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
-              <div className="p-3 bg-green-600 rounded-full w-fit mx-auto mb-4">
-                <Mail className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Email Support</h3>
-              <p className="text-2xl font-bold text-green-400 mb-2">info@chhif.org</p>
-              <p className="text-gray-300 text-sm">Detailed case submissions</p>
-            </div>
-            
-            <div className="text-center p-6 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
-              <div className="p-3 bg-pink-600 rounded-full w-fit mx-auto mb-4">
-                <Instagram className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Follow Us</h3>
-              <p className="text-2xl font-bold text-pink-400 mb-2">@chhifngo</p>
-              <p className="text-gray-300 text-sm">Stay updated with latest news</p>
-            </div>
-          </div>
-
-          <div className="text-center bg-gray-800 rounded-lg p-12">
-            <h3 className="text-2xl font-bold mb-4">Join Our Mission</h3>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-              Together, we can build a safer digital world. Whether you're seeking help or want to contribute to our cause.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Link to="/join">Become a Volunteer</Link>
-              </Button>
-              <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                <Link to="/premium-membership">Premium Membership</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
-                <Link to="/contact">Report a Crime</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>
