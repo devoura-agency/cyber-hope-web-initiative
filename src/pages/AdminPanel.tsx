@@ -82,8 +82,12 @@ const AdminPanel = () => {
     }
   };
 
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
   if (!isAuthenticated) {
-    return <AdminAuth onAuthenticated={setIsAuthenticated} />;
+    return <AdminAuth onAuthSuccess={handleAuthSuccess} />;
   }
 
   return (
@@ -121,7 +125,7 @@ const AdminPanel = () => {
                   <CardDescription>Create a new activity to showcase your organization's work</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ActivityForm onSuccess={fetchActivities} />
+                  <ActivityForm />
                 </CardContent>
               </Card>
 
