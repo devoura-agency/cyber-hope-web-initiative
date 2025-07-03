@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -15,6 +14,7 @@ import MemberForm from '@/components/admin/MemberForm';
 import ActivityForm from '@/components/admin/ActivityForm';
 import TestimonialForm from '@/components/admin/TestimonialForm';
 import MembersList from '@/components/admin/MembersList';
+import JoinedMembersList from '@/components/admin/JoinedMembersList';
 
 interface Activity {
   id: string;
@@ -102,9 +102,10 @@ const AdminPanel = () => {
           </div>
 
           <Tabs defaultValue="activities" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="activities">Activities</TabsTrigger>
               <TabsTrigger value="members">Members</TabsTrigger>
+              <TabsTrigger value="joined-members">Joined Members</TabsTrigger>
               <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
               <TabsTrigger value="add-member">Add Member</TabsTrigger>
             </TabsList>
@@ -206,6 +207,10 @@ const AdminPanel = () => {
 
             <TabsContent value="members">
               <MembersList />
+            </TabsContent>
+
+            <TabsContent value="joined-members">
+              <JoinedMembersList />
             </TabsContent>
 
             <TabsContent value="testimonials">
