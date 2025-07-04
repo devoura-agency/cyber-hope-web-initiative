@@ -7,7 +7,6 @@ import { db, storage } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +16,6 @@ interface MemberFormData {
   qualification: string;
   designation: string;
   location: string;
-  reference: string;
   joiningDate: string;
   contributions: string;
   certificates: string;
@@ -80,7 +78,6 @@ const MemberForm = () => {
         qualification: data.qualification,
         designation: data.designation,
         location: data.location,
-        reference: data.reference,
         joiningDate: data.joiningDate,
         contributions: data.contributions,
         certificates: data.certificates,
@@ -168,22 +165,14 @@ const MemberForm = () => {
           </div>
 
           <div>
-            <Label htmlFor="reference">Reference</Label>
+            <Label htmlFor="joiningDate">Joining Date *</Label>
             <Input
-              id="reference"
-              {...register('reference')}
+              id="joiningDate"
+              type="date"
+              {...register('joiningDate', { required: 'Joining date is required' })}
             />
+            {errors.joiningDate && <p className="text-red-500 text-sm mt-1">{errors.joiningDate.message}</p>}
           </div>
-        </div>
-
-        <div>
-          <Label htmlFor="joiningDate">Joining Date *</Label>
-          <Input
-            id="joiningDate"
-            type="date"
-            {...register('joiningDate', { required: 'Joining date is required' })}
-          />
-          {errors.joiningDate && <p className="text-red-500 text-sm mt-1">{errors.joiningDate.message}</p>}
         </div>
       </div>
 

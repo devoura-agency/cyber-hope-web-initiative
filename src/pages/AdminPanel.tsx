@@ -13,6 +13,7 @@ import AdminAuth from '@/components/admin/AdminAuth';
 import MemberForm from '@/components/admin/MemberForm';
 import ActivityForm from '@/components/admin/ActivityForm';
 import TestimonialForm from '@/components/admin/TestimonialForm';
+import WeeklyNewsForm from '@/components/admin/WeeklyNewsForm';
 import MembersList from '@/components/admin/MembersList';
 import JoinedMembersList from '@/components/admin/JoinedMembersList';
 
@@ -102,10 +103,11 @@ const AdminPanel = () => {
           </div>
 
           <Tabs defaultValue="activities" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="activities">Activities</TabsTrigger>
               <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="joined-members">Joined Members</TabsTrigger>
+              <TabsTrigger value="weekly-news">Weekly News</TabsTrigger>
               <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
               <TabsTrigger value="add-member">Add Member</TabsTrigger>
             </TabsList>
@@ -211,6 +213,18 @@ const AdminPanel = () => {
 
             <TabsContent value="joined-members">
               <JoinedMembersList />
+            </TabsContent>
+
+            <TabsContent value="weekly-news">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upload Weekly News</CardTitle>
+                  <CardDescription>Upload PDF editions for the weekly news section</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WeeklyNewsForm />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="testimonials">

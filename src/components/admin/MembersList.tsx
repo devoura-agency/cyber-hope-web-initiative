@@ -18,7 +18,6 @@ interface Member {
   qualification: string;
   designation: string;
   location: string;
-  reference: string;
   joiningDate: string;
   contributions: string;
   certificates: string;
@@ -124,7 +123,6 @@ const MembersList = () => {
                         <p><strong>Qualification:</strong> {member.qualification}</p>
                         <p><strong>Designation:</strong> {member.designation}</p>
                         <p><strong>Location:</strong> {member.location}</p>
-                        <p><strong>Reference:</strong> {member.reference || 'N/A'}</p>
                         <p><strong>Referral Count:</strong> {member.referralCount}</p>
                       </div>
                       {member.contributions && (

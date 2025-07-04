@@ -1,14 +1,47 @@
-
-import { useState } from 'react';
-import { Calendar, Clock, User, Play } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Calendar, Clock, User, Play, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+interface WeeklyNews {
+  id: string;
+  title: string;
+  description: string;
+  pdfUrl: string;
+  publishDate: string;
+  createdAt: string;
+}
+
 const NewsWeekly = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [weeklyNews, setWeeklyNews] = useState<WeeklyNews[]>([]);
+  const [selectedPdf, setSelectedPdf] = useState<WeeklyNews | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    fetchWeeklyNews();
+  }, []);
+
+  const fetchWeeklyNews = async () => {
+    try {
+      const weeklyNewsRef = collection(db, 'weeklyNews');
+      const q = query(weeklyNewsRef, orderBy('publishDate', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const newsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as WeeklyNews[];
+      setWeeklyNews(newsData);
+    } catch (error) {
+      console.error('Error fetching weekly news:', error);
+    }
+  };
 
   const newsArticles = [
     {
@@ -82,6 +115,14 @@ const NewsWeekly = () => {
     }
   ];
 
+  const handlePageChange = (direction: 'next' | 'prev') => {
+    if (direction === 'next' && currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === 'prev' && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -101,13 +142,136 @@ const NewsWeekly = () => {
       {/* Content Tabs */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Tabs defaultValue="news" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+          <Tabs defaultValue="weekly-news" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
+              <TabsTrigger value="weekly-news">Weekly Edition News</TabsTrigger>
               <TabsTrigger value="news">Latest News</TabsTrigger>
               <TabsTrigger value="videos">Video Content</TabsTrigger>
             </TabsList>
 
-            {/* News Tab */}
+            {/* Weekly Edition News Tab */}
+            <TabsContent value="weekly-news" className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Weekly Edition News</h2>
+                <p className="text-lg text-gray-600">
+                  Read our weekly digital newspaper with the latest cybersecurity insights and updates
+                </p>
+              </div>
+
+              {/* PDF Viewer */}
+              {selectedPdf && (
+                <div className="mb-12">
+                  <Card className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-xl">{selectedPdf.title}</CardTitle>
+                          <CardDescription className="text-blue-100">
+                            Published: {new Date(selectedPdf.publishDate).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          onClick={() => setSelectedPdf(null)}
+                          className="bg-white/20 hover:bg-white/30 text-white"
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="relative bg-gray-100">
+                        {/* PDF Viewer with newspaper effect */}
+                        <div className="newspaper-viewer relative overflow-hidden bg-white shadow-2xl">
+                          <div className="newspaper-page transform transition-all duration-700 ease-in-out hover:scale-105">
+                            <iframe
+                              src={`${selectedPdf.pdfUrl}#page=${currentPage}&view=FitH`}
+                              className="w-full h-[800px] border-0"
+                              title={selectedPdf.title}
+                            />
+                            {/* Newspaper curl effect overlay */}
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gray-200 to-transparent opacity-30 transform rotate-45 translate-x-8 -translate-y-8"></div>
+                          </div>
+                        </div>
+                        
+                        {/* Navigation Controls */}
+                        <div className="flex justify-center items-center space-x-4 py-4 bg-gray-50">
+                          <Button
+                            variant="outline"
+                            onClick={() => handlePageChange('prev')}
+                            disabled={currentPage === 1}
+                            className="flex items-center space-x-2"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            <span>Previous</span>
+                          </Button>
+                          
+                          <span className="text-sm text-gray-600">
+                            Page {currentPage} of {totalPages}
+                          </span>
+                          
+                          <Button
+                            variant="outline"
+                            onClick={() => handlePageChange('next')}
+                            disabled={currentPage === totalPages}
+                            className="flex items-center space-x-2"
+                          >
+                            <span>Next</span>
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Weekly News Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {weeklyNews.map((news) => (
+                  <Card key={news.id} className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                    <CardContent className="p-0">
+                      <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 p-8 h-48 flex items-center justify-center">
+                        <FileText className="h-16 w-16 text-blue-600" />
+                        <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                          PDF
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="font-bold text-lg mb-2 line-clamp-2">{news.title}</h3>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{news.description}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-gray-500 text-sm">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            {new Date(news.publishDate).toLocaleDateString()}
+                          </div>
+                          <Button
+                            onClick={() => {
+                              setSelectedPdf(news);
+                              setCurrentPage(1);
+                              setTotalPages(10); // You might want to get this from PDF metadata
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Read Edition
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {weeklyNews.length === 0 && (
+                <div className="text-center py-12">
+                  <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 text-lg">No weekly editions available yet.</p>
+                  <p className="text-gray-500">Check back soon for our latest digital newspaper!</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Latest News Tab */}
             <TabsContent value="news" className="space-y-8">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">Latest News & Updates</h2>
