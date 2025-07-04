@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Calendar, Clock, User, Play, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, User, Play, FileText, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,6 +23,8 @@ const NewsWeekly = () => {
   const [selectedPdf, setSelectedPdf] = useState<WeeklyNews | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isPageTurning, setIsPageTurning] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     fetchWeeklyNews();
@@ -41,6 +43,25 @@ const NewsWeekly = () => {
     } catch (error) {
       console.error('Error fetching weekly news:', error);
     }
+  };
+
+  const handlePageChange = (direction: 'next' | 'prev') => {
+    if (isPageTurning) return;
+    
+    setIsPageTurning(true);
+    
+    setTimeout(() => {
+      if (direction === 'next' && currentPage < totalPages) {
+        setCurrentPage(currentPage + 1);
+      } else if (direction === 'prev' && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+      setIsPageTurning(false);
+    }, 400);
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
 
   const newsArticles = [
@@ -115,14 +136,6 @@ const NewsWeekly = () => {
     }
   ];
 
-  const handlePageChange = (direction: 'next' | 'prev') => {
-    if (direction === 'next' && currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === 'prev' && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -138,6 +151,66 @@ const NewsWeekly = () => {
           </div>
         </div>
       </section>
+
+      {/* Fullscreen Newspaper Viewer */}
+      {selectedPdf && isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center">
+          <div className="w-full h-full relative">
+            {/* Close Button */}
+            <Button
+              onClick={toggleFullscreen}
+              className="absolute top-4 right-4 z-50 bg-black/50 hover:bg-black/70 text-white"
+              size="sm"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            {/* Newspaper Display */}
+            <div className="newspaper-reader h-full flex items-center justify-center p-4">
+              <div className={`newspaper-container ${isPageTurning ? 'page-turning' : ''}`}>
+                <div className="newspaper-shadow"></div>
+                <div className="newspaper-content">
+                  <iframe
+                    src={`${selectedPdf.pdfUrl}#page=${currentPage}&view=FitH`}
+                    className="w-full h-full border-0"
+                    title={selectedPdf.title}
+                  />
+                </div>
+                <div className="newspaper-fold"></div>
+              </div>
+            </div>
+
+            {/* Navigation Controls */}
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-black/50 px-6 py-3 rounded-full">
+              <Button
+                variant="ghost"
+                onClick={() => handlePageChange('prev')}
+                disabled={currentPage === 1 || isPageTurning}
+                className="text-white hover:bg-white/20"
+                size="sm"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              
+              <span className="text-white text-sm px-4">
+                Page {currentPage} of {totalPages}
+              </span>
+              
+              <Button
+                variant="ghost"
+                onClick={() => handlePageChange('next')}
+                disabled={currentPage === totalPages || isPageTurning}
+                className="text-white hover:bg-white/20"
+                size="sm"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content Tabs */}
       <section className="py-16">
@@ -158,87 +231,38 @@ const NewsWeekly = () => {
                 </p>
               </div>
 
-              {/* PDF Viewer */}
-              {selectedPdf && (
-                <div className="mb-12">
-                  <Card className="overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <CardTitle className="text-xl">{selectedPdf.title}</CardTitle>
-                          <CardDescription className="text-blue-100">
-                            Published: {new Date(selectedPdf.publishDate).toLocaleDateString()}
-                          </CardDescription>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          onClick={() => setSelectedPdf(null)}
-                          className="bg-white/20 hover:bg-white/30 text-white"
-                        >
-                          Close
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="relative bg-gray-100">
-                        {/* PDF Viewer with newspaper effect */}
-                        <div className="newspaper-viewer relative overflow-hidden bg-white shadow-2xl">
-                          <div className="newspaper-page transform transition-all duration-700 ease-in-out hover:scale-105">
-                            <iframe
-                              src={`${selectedPdf.pdfUrl}#page=${currentPage}&view=FitH`}
-                              className="w-full h-[800px] border-0"
-                              title={selectedPdf.title}
-                            />
-                            {/* Newspaper curl effect overlay */}
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gray-200 to-transparent opacity-30 transform rotate-45 translate-x-8 -translate-y-8"></div>
-                          </div>
-                        </div>
-                        
-                        {/* Navigation Controls */}
-                        <div className="flex justify-center items-center space-x-4 py-4 bg-gray-50">
-                          <Button
-                            variant="outline"
-                            onClick={() => handlePageChange('prev')}
-                            disabled={currentPage === 1}
-                            className="flex items-center space-x-2"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            <span>Previous</span>
-                          </Button>
-                          
-                          <span className="text-sm text-gray-600">
-                            Page {currentPage} of {totalPages}
-                          </span>
-                          
-                          <Button
-                            variant="outline"
-                            onClick={() => handlePageChange('next')}
-                            disabled={currentPage === totalPages}
-                            className="flex items-center space-x-2"
-                          >
-                            <span>Next</span>
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
               {/* Weekly News Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {weeklyNews.map((news) => (
-                  <Card key={news.id} className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                  <Card key={news.id} className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 newspaper-card">
                     <CardContent className="p-0">
-                      <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 p-8 h-48 flex items-center justify-center">
-                        <FileText className="h-16 w-16 text-blue-600" />
-                        <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                          PDF
+                      <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 p-8 h-64 flex flex-col items-center justify-center newspaper-front">
+                        <div className="newspaper-masthead mb-4">
+                          <h3 className="text-2xl font-bold text-gray-800 text-center">CYBER HELP</h3>
+                          <div className="w-16 h-0.5 bg-gray-600 mx-auto mt-1"></div>
+                          <p className="text-xs text-gray-600 text-center mt-1">WEEKLY EDITION</p>
+                        </div>
+                        
+                        <FileText className="h-12 w-12 text-amber-600 mb-2" />
+                        
+                        <div className="absolute top-4 right-4 bg-red-600 text-white text-xs px-2 py-1 rounded newspaper-edition">
+                          EDITION #{news.id}
+                        </div>
+                        
+                        <div className="absolute bottom-4 left-4 right-4 text-center">
+                          <div className="text-xs text-gray-600">
+                            {new Date(news.publishDate).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
                         </div>
                       </div>
-                      <div className="p-6">
-                        <h3 className="font-bold text-lg mb-2 line-clamp-2">{news.title}</h3>
+                      
+                      <div className="p-6 bg-white">
+                        <h3 className="font-bold text-lg mb-2 line-clamp-2 text-gray-800">{news.title}</h3>
                         <p className="text-gray-600 text-sm mb-4 line-clamp-3">{news.description}</p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center text-gray-500 text-sm">
@@ -249,9 +273,10 @@ const NewsWeekly = () => {
                             onClick={() => {
                               setSelectedPdf(news);
                               setCurrentPage(1);
-                              setTotalPages(10); // You might want to get this from PDF metadata
+                              setTotalPages(10);
+                              setIsFullscreen(true);
                             }}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-amber-600 hover:bg-amber-700 text-white newspaper-btn"
                           >
                             Read Edition
                           </Button>

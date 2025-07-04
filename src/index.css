@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -69,24 +68,25 @@
   }
 }
 
-/* Newspaper effect styles */
+/* Enhanced Newspaper effect styles */
 .newspaper-viewer {
-  perspective: 1000px;
-  background: linear-gradient(45deg, #f5f5f5 25%, transparent 25%), 
-              linear-gradient(-45deg, #f5f5f5 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #f5f5f5 75%), 
-              linear-gradient(-45deg, transparent 75%, #f5f5f5 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  perspective: 1200px;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
 }
 
 .newspaper-page {
-  background: white;
+  background: #fefefe;
   box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.1),
-    0 6px 20px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   position: relative;
+  border: 1px solid #e0e0e0;
 }
 
 .newspaper-page::before {
@@ -94,46 +94,177 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 0;
-  height: 0;
-  border-left: 20px solid transparent;
-  border-top: 20px solid #e5e5e5;
-  transform: rotate(45deg);
-  transform-origin: 0 0;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #f0f0f0 50%, transparent 50%);
+  z-index: 3;
+}
+
+.newspaper-page:hover {
+  transform: perspective(1200px) rotateY(-8deg) rotateX(3deg);
+  box-shadow: 
+    -15px 15px 40px rgba(0, 0, 0, 0.25),
+    -30px 30px 80px rgba(0, 0, 0, 0.15);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+/* Fullscreen Newspaper Reader */
+.newspaper-reader {
+  background: 
+    radial-gradient(circle at center, rgba(139, 69, 19, 0.1) 0%, transparent 70%),
+    linear-gradient(45deg, #2c3e50 0%, #34495e 100%);
+}
+
+.newspaper-container {
+  position: relative;
+  width: 80vw;
+  height: 90vh;
+  max-width: 900px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.newspaper-shadow {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: -10px;
+  bottom: -10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  filter: blur(20px);
+  z-index: 0;
+}
+
+.newspaper-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #fefefe;
+  border-radius: 8px;
+  border: 2px solid #d4af37;
+  box-shadow: 
+    0 0 0 1px rgba(212, 175, 55, 0.3),
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
   z-index: 1;
 }
 
-.newspaper-page::after {
+.newspaper-fold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  background: 
+    linear-gradient(135deg, 
+      rgba(0, 0, 0, 0.05) 0%, 
+      rgba(0, 0, 0, 0.02) 50%, 
+      transparent 50%
+    );
+  border-radius: 0 8px 0 8px;
+  z-index: 2;
+}
+
+/* Page Turn Animation */
+@keyframes newspaper-page-turn {
+  0% {
+    transform: perspective(1200px) rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: perspective(1200px) rotateY(-25deg) rotateX(5deg) translateZ(50px);
+  }
+  50% {
+    transform: perspective(1200px) rotateY(-90deg) rotateX(0deg) translateZ(100px);
+    box-shadow: -50px 20px 100px rgba(0, 0, 0, 0.4);
+  }
+  75% {
+    transform: perspective(1200px) rotateY(-25deg) rotateX(-5deg) translateZ(50px);
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0deg) rotateX(0deg);
+  }
+}
+
+.page-turning .newspaper-container {
+  animation: newspaper-page-turn 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+/* Newspaper Card Styles */
+.newspaper-card {
+  background: linear-gradient(145deg, #fefefe 0%, #f8f8f8 100%);
+  border: 1px solid #e6e6e6;
+}
+
+.newspaper-card:hover {
+  transform: translateY(-8px) rotateX(5deg);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.newspaper-front {
+  background: 
+    linear-gradient(45deg, rgba(255, 248, 220, 0.8) 0%, rgba(255, 245, 208, 0.9) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px
+    );
+  border-bottom: 3px solid #d4af37;
+  position: relative;
+}
+
+.newspaper-masthead {
+  font-family: 'Times New Roman', serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.newspaper-edition {
+  transform: rotate(12deg);
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.newspaper-btn {
+  font-family: 'Times New Roman', serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.newspaper-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Additional newspaper texture */
+.newspaper-front::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(0,0,0,0.02) 1px, transparent 0);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* Fold effect for cards */
+.newspaper-card::after {
   content: '';
   position: absolute;
   top: 0;
   right: 0;
   width: 20px;
   height: 20px;
-  background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
-  z-index: 2;
-}
-
-.newspaper-page:hover {
-  transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
-  box-shadow: 
-    -10px 10px 20px rgba(0, 0, 0, 0.2),
-    -20px 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Page turn animation */
-@keyframes page-turn {
-  0% {
-    transform: perspective(1000px) rotateY(0deg);
-  }
-  50% {
-    transform: perspective(1000px) rotateY(-90deg);
-  }
-  100% {
-    transform: perspective(1000px) rotateY(0deg);
-  }
-}
-
-.page-turning {
-  animation: page-turn 0.8s ease-in-out;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 50%, transparent 50%);
+  border-radius: 0 8px 0 8px;
+  z-index: 1;
 }
