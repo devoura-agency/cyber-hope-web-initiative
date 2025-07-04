@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar, Upload, User, Phone, Mail, MapPin, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,16 +38,28 @@ interface FormData {
   password: string;
   confirmPassword: string;
   image: FileList | null;
+  referralCode: string;
 }
 
 const JoinUs = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
-  const referralCode = searchParams.get('ref');
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
+  const referralCode = searchParams.get('ref') || '';
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+    defaultValues: {
+      referralCode: referralCode
+    }
+  });
 
   const supportingAmount = watch('supportingAmount');
+
+  // Set referral code when component mounts
+  useState(() => {
+    if (referralCode) {
+      setValue('referralCode', referralCode);
+    }
+  });
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -61,21 +74,31 @@ const JoinUs = () => {
         return;
       }
 
+      let profileImageUrl = '';
+      
+      // Upload profile image if provided
+      if (data.image && data.image.length > 0) {
+        const imageFile = data.image[0];
+        const imageRef = ref(storage, `joinedMembers/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(imageRef, imageFile);
+        profileImageUrl = await getDownloadURL(snapshot.ref);
+      }
+
       // Generate unique member ID
-      const membersRef = collection(db, 'members');
+      const membersRef = collection(db, 'joinedMembers');
       const snapshot = await getDocs(membersRef);
       const memberCount = snapshot.size;
       const newMemberId = String(memberCount + 1).padStart(4, '0');
 
       // Handle referral logic
       let referredBy = null;
-      if (referralCode) {
-        const referrerQuery = query(membersRef, where('memberId', '==', referralCode));
+      if (data.referralCode) {
+        const referrerQuery = query(collection(db, 'members'), where('uid', '==', data.referralCode));
         const referrerSnapshot = await getDocs(referrerQuery);
         
         if (!referrerSnapshot.empty) {
           const referrerDoc = referrerSnapshot.docs[0];
-          referredBy = referralCode;
+          referredBy = data.referralCode;
           
           // Increment referral count for the referrer
           await updateDoc(doc(db, 'members', referrerDoc.id), {
@@ -84,20 +107,26 @@ const JoinUs = () => {
         }
       }
 
-      // Submit member data
-      await addDoc(collection(db, 'members'), {
+      // Submit member data to joinedMembers collection
+      const memberData = {
         ...data,
         memberId: newMemberId,
         referredBy: referredBy,
         referralCount: 0,
         supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
-        status: 'active',
+        status: 'pending',
+        profileImage: profileImageUrl,
         createdAt: new Date().toISOString(),
-      });
+      };
+
+      // Remove image from data before saving
+      delete memberData.image;
+
+      await addDoc(collection(db, 'joinedMembers'), memberData);
 
       toast({
         title: "Registration Successful!",
-        description: `Welcome! Your member ID is ${newMemberId}. Please save this for future reference.`,
+        description: `Welcome! Your application ID is ${newMemberId}. Please save this for future reference.`,
       });
 
     } catch (error) {
@@ -149,6 +178,31 @@ const JoinUs = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Referral Code */}
+                {referralCode && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-blue-800 font-medium">
+                      You were referred by member: {referralCode}
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Referral Information</h3>
+                  
+                  <div>
+                    <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+                    <Input
+                      id="referralCode"
+                      placeholder="Enter referral member ID (e.g., 0010)"
+                      {...register('referralCode')}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      If you were referred by a member, their ID will appear here automatically
+                    </p>
+                  </div>
+                </div>
+
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
@@ -390,11 +444,7 @@ const JoinUs = () => {
                           key={amount.value}
                           type="button"
                           variant={supportingAmount === amount.value ? "default" : "outline"}
-                          onClick={() => {
-                            // Manually trigger the change event for react-hook-form
-                            const event = { target: { name: 'supportingAmount', value: amount.value } };
-                            register('supportingAmount').onChange(event);
-                          }}
+                          onClick={() => setValue('supportingAmount', amount.value)}
                           className="text-sm"
                         >
                           {amount.label}
@@ -411,7 +461,6 @@ const JoinUs = () => {
                           placeholder="Enter amount"
                           {...register('customAmount', {
                             required: 'Custom amount is required when "Custom Amount" is selected',
-                            valueAsNumber: true,
                           })}
                         />
                         {errors.customAmount && (
@@ -463,14 +512,15 @@ const JoinUs = () => {
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Profile Image</h3>
                   
                   <div>
-                    <Label htmlFor="image">Upload Image</Label>
+                    <Label htmlFor="image">Upload Profile Image *</Label>
                     <Input
                       id="image"
                       type="file"
                       accept="image/*"
-                      {...register('image')}
+                      {...register('image', { required: 'Profile image is required' })}
                       className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
+                    {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image.message}</p>}
                   </div>
                 </div>
 

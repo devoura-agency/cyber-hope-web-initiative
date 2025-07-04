@@ -48,12 +48,22 @@ const Footer = () => {
               <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link></li>
               <li><Link to="/news" className="text-gray-300 hover:text-white transition-colors">Weekly Edition</Link></li>
               <li><Link to="/join" className="text-gray-300 hover:text-white transition-colors">Join Us</Link></li>
+              <li><Link to="/members" className="text-gray-300 hover:text-white transition-colors">Members</Link></li>
+              <li><Link to="/donation" className="text-gray-300 hover:text-white transition-colors">Donation</Link></li>
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Legal & Policies */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Contact Info</h3>
+            <h3 className="font-semibold text-lg mb-4">Legal & Policies</h3>
+            <ul className="space-y-2">
+              <li><Link to="/privacy-policy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-conditions" className="text-gray-300 hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/cancellation-refund" className="text-gray-300 hover:text-white transition-colors">Cancellation & Refund</Link></li>
+              <li><Link to="/shipping-delivery" className="text-gray-300 hover:text-white transition-colors">Shipping & Delivery</Link></li>
+            </ul>
+            
+            <h3 className="font-semibold text-lg mb-4 mt-6">Contact Info</h3>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-blue-400" />

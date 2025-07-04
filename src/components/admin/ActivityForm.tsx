@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,9 +18,9 @@ const ActivityForm = () => {
     date: '',
     location: '',
     participants: '',
-    tag: '',
-    images: ''
+    tag: ''
   });
+  const [images, setImages] = useState<FileList | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +28,18 @@ const ActivityForm = () => {
     setLoading(true);
 
     try {
-      const imageUrls = formData.images.split(',').map(url => url.trim()).filter(url => url);
+      let imageUrls: string[] = [];
+      
+      // Upload images if provided
+      if (images && images.length > 0) {
+        const uploadPromises = Array.from(images).map(async (file) => {
+          const imageRef = ref(storage, `activities/${Date.now()}_${file.name}`);
+          const snapshot = await uploadBytes(imageRef, file);
+          return getDownloadURL(snapshot.ref);
+        });
+        
+        imageUrls = await Promise.all(uploadPromises);
+      }
       
       await addDoc(collection(db, 'activities'), {
         ...formData,
@@ -44,9 +56,14 @@ const ActivityForm = () => {
         date: '',
         location: '',
         participants: '',
-        tag: '',
-        images: ''
+        tag: ''
       });
+      setImages(null);
+      
+      // Reset file input
+      const fileInput = document.getElementById('images') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      
     } catch (error) {
       console.error('Error adding activity:', error);
       toast.error('Failed to add activity');
@@ -132,17 +149,19 @@ const ActivityForm = () => {
         <div className="space-y-2">
           <Label htmlFor="images" className="flex items-center gap-2">
             <Image className="h-4 w-4" />
-            Image URLs
+            Upload Images
           </Label>
           <Input
             id="images"
-            value={formData.images}
-            onChange={(e) => setFormData({ ...formData, images: e.target.value })}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setImages(e.target.files)}
             required
-            placeholder="Enter image URLs separated by commas"
+            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
           <p className="text-xs text-gray-500">
-            Enter multiple image URLs separated by commas. Use direct image links (ending with .jpg, .png, etc.)
+            Select multiple images for the activity. Supported formats: JPG, PNG, GIF
           </p>
         </div>
       </div>

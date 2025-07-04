@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, getDocs, query, where, doc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,28 +12,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 interface MemberFormData {
-  title: string;
+  uid: string;
   name: string;
-  gender: string;
-  mobile: string;
-  whatsapp: string;
-  dob: string;
-  email: string;
-  parentName: string;
-  parentMobile: string;
-  maritalStatus: string;
-  address: string;
-  country: string;
-  state: string;
-  district: string;
-  committee: string;
-  subCommittee: string;
-  supportingAmount: string;
-  customAmount: string;
-  pincode: string;
-  password: string;
-  confirmPassword: string;
-  imageUrl: string;
+  qualification: string;
+  designation: string;
+  location: string;
+  reference: string;
+  joiningDate: string;
+  contributions: string;
+  certificates: string;
+  profileImage: FileList | null;
   referralCode: string;
 }
 
@@ -40,19 +30,18 @@ const MemberForm = () => {
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<MemberFormData>();
 
-  const supportingAmount = watch('supportingAmount');
-
   const onSubmit = async (data: MemberFormData) => {
     try {
       setLoading(true);
       
-      if (data.password !== data.confirmPassword) {
-        toast({
-          title: "Error",
-          description: "Passwords do not match",
-          variant: "destructive"
-        });
-        return;
+      let profileImageUrl = '';
+      
+      // Upload profile image if provided
+      if (data.profileImage && data.profileImage.length > 0) {
+        const imageFile = data.profileImage[0];
+        const imageRef = ref(storage, `members/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(imageRef, imageFile);
+        profileImageUrl = await getDownloadURL(snapshot.ref);
       }
 
       // Generate unique member ID
@@ -64,7 +53,7 @@ const MemberForm = () => {
       // Handle referral logic
       let referredBy = null;
       if (data.referralCode) {
-        const referrerQuery = query(membersRef, where('memberId', '==', data.referralCode));
+        const referrerQuery = query(membersRef, where('uid', '==', data.referralCode));
         const referrerSnapshot = await getDocs(referrerQuery);
         
         if (!referrerSnapshot.empty) {
@@ -86,11 +75,18 @@ const MemberForm = () => {
 
       // Submit member data
       await addDoc(collection(db, 'members'), {
-        ...data,
-        memberId: newMemberId,
+        uid: data.uid,
+        name: data.name,
+        qualification: data.qualification,
+        designation: data.designation,
+        location: data.location,
+        reference: data.reference,
+        joiningDate: data.joiningDate,
+        contributions: data.contributions,
+        certificates: data.certificates,
+        profileImage: profileImageUrl,
         referredBy: referredBy,
         referralCount: 0,
-        supportingAmount: data.supportingAmount === 'custom' ? data.customAmount : data.supportingAmount,
         status: 'active',
         createdAt: new Date().toISOString(),
       });
@@ -114,38 +110,24 @@ const MemberForm = () => {
     }
   };
 
-  const supportingAmounts = [
-    { value: '500', label: '₹500' },
-    { value: '1000', label: '₹1,000' },
-    { value: '2000', label: '₹2,000' },
-    { value: '5000', label: '₹5,000' },
-    { value: 'custom', label: 'Custom Amount' }
-  ];
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Personal Information */}
+      {/* Basic Information */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="title">Title *</Label>
-            <Select {...register('title', { required: 'Title is required' })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select title" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="mr">Mr.</SelectItem>
-                <SelectItem value="mrs">Mrs.</SelectItem>
-                <SelectItem value="ms">Ms.</SelectItem>
-                <SelectItem value="dr">Dr.</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+            <Label htmlFor="uid">Member ID (UID) *</Label>
+            <Input
+              id="uid"
+              {...register('uid', { required: 'Member ID is required' })}
+              placeholder="e.g., 0001"
+            />
+            {errors.uid && <p className="text-red-500 text-sm mt-1">{errors.uid.message}</p>}
           </div>
           
-          <div className="md:col-span-2">
+          <div>
             <Label htmlFor="name">Full Name *</Label>
             <Input
               id="name"
@@ -155,114 +137,77 @@ const MemberForm = () => {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="gender">Gender *</Label>
-          <Input
-            id="gender"
-            type="text"
-            {...register('gender', { required: 'Gender is required' })}
-          />
-          {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="qualification">Qualification *</Label>
+            <Input
+              id="qualification"
+              {...register('qualification', { required: 'Qualification is required' })}
+            />
+            {errors.qualification && <p className="text-red-500 text-sm mt-1">{errors.qualification.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="designation">Designation *</Label>
+            <Input
+              id="designation"
+              {...register('designation', { required: 'Designation is required' })}
+            />
+            {errors.designation && <p className="text-red-500 text-sm mt-1">{errors.designation.message}</p>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="location">Location *</Label>
+            <Input
+              id="location"
+              {...register('location', { required: 'Location is required' })}
+            />
+            {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="reference">Reference</Label>
+            <Input
+              id="reference"
+              {...register('reference')}
+            />
+          </div>
         </div>
 
         <div>
-          <Label htmlFor="mobile">Mobile *</Label>
+          <Label htmlFor="joiningDate">Joining Date *</Label>
           <Input
-            id="mobile"
-            type="tel"
-            {...register('mobile', { required: 'Mobile is required' })}
-          />
-          {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile.message}</p>}
-        </div>
-
-        <div>
-          <Label htmlFor="whatsapp">WhatsApp</Label>
-          <Input
-            id="whatsapp"
-            type="tel"
-            {...register('whatsapp')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="dob">Date of Birth *</Label>
-          <Input
-            id="dob"
+            id="joiningDate"
             type="date"
-            {...register('dob', { required: 'Date of Birth is required' })}
+            {...register('joiningDate', { required: 'Joining date is required' })}
           />
-          {errors.dob && <p className="text-red-500 text-sm mt-1">{errors.dob.message}</p>}
+          {errors.joiningDate && <p className="text-red-500 text-sm mt-1">{errors.joiningDate.message}</p>}
         </div>
+      </div>
 
+      {/* Additional Information */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Information</h3>
+        
         <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            {...register('email')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="parentName">Parent's Name</Label>
-          <Input
-            id="parentName"
-            type="text"
-            {...register('parentName')}
+          <Label htmlFor="contributions">Contributions & Activities</Label>
+          <Textarea
+            id="contributions"
+            {...register('contributions')}
+            placeholder="List activities they have participated in and their contributions..."
+            rows={4}
           />
         </div>
 
         <div>
-          <Label htmlFor="parentMobile">Parent's Mobile</Label>
-          <Input
-            id="parentMobile"
-            type="tel"
-            {...register('parentMobile')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="maritalStatus">Marital Status</Label>
-          <Input
-            id="maritalStatus"
-            type="text"
-            {...register('maritalStatus')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="address">Address</Label>
-          <Input
-            id="address"
-            type="text"
-            {...register('address')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="country">Country</Label>
-          <Input
-            id="country"
-            type="text"
-            {...register('country')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="state">State</Label>
-          <Input
-            id="state"
-            type="text"
-            {...register('state')}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="district">District</Label>
-          <Input
-            id="district"
-            type="text"
-            {...register('district')}
+          <Label htmlFor="certificates">Certificates</Label>
+          <Textarea
+            id="certificates"
+            {...register('certificates')}
+            placeholder="List any certificates or achievements..."
+            rows={3}
           />
         </div>
       </div>
@@ -284,88 +229,21 @@ const MemberForm = () => {
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="committee">Committee</Label>
-        <Input
-          id="committee"
-          type="text"
-          {...register('committee')}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="subCommittee">Sub-Committee</Label>
-        <Input
-          id="subCommittee"
-          type="text"
-          {...register('subCommittee')}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="supportingAmount">Supporting Amount *</Label>
-        <Select {...register('supportingAmount', { required: 'Supporting amount is required' })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select supporting amount" />
-          </SelectTrigger>
-          <SelectContent>
-            {supportingAmounts.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.supportingAmount && <p className="text-red-500 text-sm mt-1">{errors.supportingAmount.message}</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="customAmount">Custom Amount</Label>
-        <Input
-          id="customAmount"
-          type="text"
-          {...register('customAmount')}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="pincode">Pincode</Label>
-        <Input
-          id="pincode"
-          type="text"
-          {...register('pincode')}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="password">Password *</Label>
-        <Input
-          id="password"
-          type="password"
-          {...register('password', { required: 'Password is required' })}
-        />
-        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="confirmPassword">Confirm Password *</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          {...register('confirmPassword', { required: 'Confirm password is required' })}
-        />
-        {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="imageUrl">Profile Image URL *</Label>
-        <Input
-          id="imageUrl"
-          type="url"
-          {...register('imageUrl', { required: 'Profile image URL is required' })}
-          placeholder="https://example.com/image.jpg"
-        />
-        {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl.message}</p>}
+      {/* Profile Image */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Profile Image</h3>
+        
+        <div>
+          <Label htmlFor="profileImage">Upload Profile Image *</Label>
+          <Input
+            id="profileImage"
+            type="file"
+            accept="image/*"
+            {...register('profileImage', { required: 'Profile image is required' })}
+            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          {errors.profileImage && <p className="text-red-500 text-sm mt-1">{errors.profileImage.message}</p>}
+        </div>
       </div>
 
       <div className="text-center pt-6">
